@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Destinations — École de Design</title>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0E0E10;
+    --bg-panel: #161619;
+    --bg-card: #1E1E22;
+    --bg-hover: #26262B;
+    --border: #2A2A30;
+    --text-primary: #F0EDE8;
+    --text-secondary: #8A8A95;
+    --text-muted: #5A5A65;
+    --accent-stage: #E8A85F;
+    --accent-exchange: #6FA3EF;
+    --accent-stage-dim: rgba(232,168,95,0.15);
+    --accent-exchange-dim: rgba(111,163,239,0.15);
+    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── Map ────────────────────────────────── */
+  #map {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  /* ── Side Panel ────────────────────────── */
+  .panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    bottom: 20px;
+    width: 360px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    backdrop-filter: blur(30px);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .panel.collapsed {
+    transform: translateX(calc(-100% - 30px));
+  }
+
+  .panel-toggle {
+    position: absolute;
+    top: 28px;
+    left: 390px;
+    z-index: 11;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .panel.collapsed ~ .panel-toggle {
+    left: 20px;
+  }
+
+  .panel-toggle:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .panel-header {
+    padding: 32px 28px 0;
+  }
+
+  .panel-header h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 4px;
+  }
+
+  .panel-header h1 em {
+    font-style: italic;
+    color: var(--accent-stage);
+  }
+
+  .panel-header .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-weight: 300;
+  }
+
+  /* ── Stats ──────────────────────────────── */
+  .stats-row {
+    display: flex;
+    gap: 10px;
+    padding: 20px 28px;
+  }
+
+  .stat-card {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card .number {
+    font-family: var(--font-display);
+    font-size: 26px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-card .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+
+  .stat-card.stages .number { color: var(--accent-stage); }
+  .stat-card.exchanges .number { color: var(--accent-exchange); }
+
+  /* ── Filters ───────────────────────────── */
+  .filters {
+    padding: 0 28px 16px;
+  }
+
+  .filter-group {
+    margin-bottom: 14px;
+  }
+
+  .filter-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12.5px;
+    font-weight: 400;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-body);
+  }
+
+  .chip:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+  }
+
+  .chip.active {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border-color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .chip.active.stage-chip {
+    background: var(--accent-stage);
+    border-color: var(--accent-stage);
+    color: var(--bg-primary);
+  }
+
+  .chip.active.exchange-chip {
+    background: var(--accent-exchange);
+    border-color: var(--accent-exchange);
+    color: var(--bg-primary);
+  }
+
+  /* ── Destination List ──────────────────── */
+  .list-header {
+    padding: 0 28px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .list-header h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .list-header .count {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  .destination-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px 20px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .dest-item {
+    padding: 14px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .dest-item:hover {
+    background: var(--bg-hover);
+  }
+
+  .dest-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .dest-dot.stage { background: var(--accent-stage); }
+  .dest-dot.exchange { background: var(--accent-exchange); }
+
+  .dest-info { flex: 1; min-width: 0; }
+
+  .dest-city {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .dest-detail {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dest-promo {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  /* ── Mapbox Popup ──────────────────────── */
+  .mapboxgl-popup-content {
+    background: var(--bg-panel) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 14px !important;
+    padding: 22px 24px !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font-body) !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
+    min-width: 240px;
+  }
+
+  .mapboxgl-popup-tip {
+    border-top-color: var(--bg-panel) !important;
+  }
+
+  .mapboxgl-popup-close-button {
+    color: var(--text-muted) !important;
+    font-size: 20px !important;
+    right: 10px !important;
+    top: 8px !important;
+  }
+
+  .popup-type {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .popup-type.stage { color: var(--accent-stage); }
+  .popup-type.exchange { color: var(--accent-exchange); }
+
+  .popup-city {
+    font-family: var(--font-display);
+    font-size: 22px;
+    margin-bottom: 2px;
+  }
+
+  .popup-country {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 300;
+    margin-bottom: 14px;
+  }
+
+  .popup-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .popup-meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+  }
+
+  .popup-meta-label {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .popup-meta-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* ── Custom Markers ────────────────────── */
+  .marker {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+    border: 2px solid var(--bg-primary);
+  }
+
+  .marker:hover {
+    transform: scale(1.6);
+    z-index: 10;
+  }
+
+  .marker.stage {
+    background: var(--accent-stage);
+    box-shadow: 0 0 0 3px rgba(232,168,95,0.2), 0 2px 8px rgba(232,168,95,0.3);
+  }
+
+  .marker.exchange {
+    background: var(--accent-exchange);
+    box-shadow: 0 0 0 3px rgba(111,163,239,0.2), 0 2px 8px rgba(111,163,239,0.3);
+  }
+
+  .marker.stage:hover {
+    box-shadow: 0 0 0 6px rgba(232,168,95,0.25), 0 4px 20px rgba(232,168,95,0.4);
+  }
+
+  .marker.exchange:hover {
+    box-shadow: 0 0 0 6px rgba(111,163,239,0.25), 0 4px 20px rgba(111,163,239,0.4);
+  }
+
+  .marker.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0);
+  }
+
+  /* ── Google Sheet Banner ────────────────── */
+  .sheet-banner {
+    padding: 16px 28px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .sheet-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+
+  .sheet-link:hover {
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+  }
+
+  .sheet-link svg {
+    flex-shrink: 0;
+  }
+
+  /* ── Responsive ─────────────────────────── */
+  @media (max-width: 768px) {
+    .panel {
+      width: calc(100% - 40px);
+      top: auto;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 55vh;
+      border-radius: 20px 20px 0 0;
+    }
+
+    .panel.collapsed {
+      transform: translateY(calc(100% - 60px));
+    }
+
+    .panel-toggle {
+      display: none;
+    }
+  }
+
+  /* ── Animations ────────────────────────── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-header, .stats-row, .filters, .list-header, .destination-list {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .stats-row { animation-delay: 0.05s; }
+  .filters { animation-delay: 0.1s; }
+  .list-header { animation-delay: 0.15s; }
+  .destination-list { animation-delay: 0.2s; }
+
+  /* ── Mapbox Overrides ──────────────────── */
+  .mapboxgl-ctrl-bottom-left,
+  .mapboxgl-ctrl-bottom-right {
+    opacity: 0.4;
+    transition: opacity 0.2s;
+  }
+  .mapboxgl-ctrl-bottom-left:hover,
+  .mapboxgl-ctrl-bottom-right:hover {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="panel" id="panel">
+  <div class="panel-header">
+    <h1>Nos <em>destinations</em><br>à travers le monde</h1>
+    <p class="subtitle">Stages & échanges académiques — Promos 2020→2025</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card stages">
+      <div class="number" id="countStages">0</div>
+      <div class="label">Stages</div>
+    </div>
+    <div class="stat-card exchanges">
+      <div class="number" id="countExchanges">0</div>
+      <div class="label">Échanges</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" id="countCountries">0</div>
+      <div class="label">Pays</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <div class="filter-label">Type</div>
+      <div class="filter-chips" id="typeFilters">
+        <button class="chip active" data-filter="all">Tous</button>
+        <button class="chip stage-chip" data-filter="stage">Stages</button>
+        <button class="chip exchange-chip" data-filter="exchange">Échanges</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Promotion</div>
+      <div class="filter-chips" id="promoFilters">
+        <button class="chip active" data-filter="all">Toutes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-header">
+    <h2>Destinations</h2>
+    <span class="count" id="listCount">0 résultats</span>
+  </div>
+
+  <div class="destination-list" id="destinationList"></div>
+
+  <div class="sheet-banner">
+    <a href="#" class="sheet-link" title="Modifier les données dans Google Sheet">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Modifier les données (Google Sheet)
+    </a>
+  </div>
+</div>
+
+<button class="panel-toggle" id="panelToggle">☰</button>
+
+<script>
+// ══════════════════════════════════════════════
+//  GOOGLE SHEET DATA SOURCE
+// ══════════════════════════════════════════════
+// ⚠️ COLLEZ VOTRE LIEN CSV ICI (voir guide)
+// Fichier → Partager → Publier sur le Web → CSV
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-0YFn6d_UV6M6IPHTgm_Twik3wWjmXI1pAH3lfg3ACTn_mHc9Nr7EQP0X9tDQCAT6EVVKnSwu-VyR/pub?gid=0&single=true&output=csv';
+
+let destinations = [];
+
+async function loadData() {
+  try {
+    const response = await fetch(SHEET_URL);
+    const csv = await response.text();
+    destinations = parseCSV(csv);
+    createMarkers();
+    updateView();
+  } catch (err) {
+    console.error('Erreur de chargement du Google Sheet :', err);
+    // Données de démonstration en cas d'erreur
+    destinations = [
+      { city: "Tokyo", country: "Japon", lat: 35.6762, lng: 139.6503, type: "stage", promo: 2024, student: "Léa Martin", org: "Muji Design Studio" },
+      { city: "New York", country: "États-Unis", lat: 40.7128, lng: -74.006, type: "stage", promo: 2024, student: "Hugo Bernard", org: "Pentagram" },
+      { city: "Stockholm", country: "Suède", lat: 59.3293, lng: 18.0686, type: "exchange", promo: 2024, student: "Baptiste Robin", org: "Konstfack" },
+      { city: "Helsinki", country: "Finlande", lat: 60.1699, lng: 24.9384, type: "exchange", promo: 2023, student: "Margot Henry", org: "Aalto University" },
+      { city: "Copenhague", country: "Danemark", lat: 55.6761, lng: 12.5683, type: "stage", promo: 2022, student: "Clara Faure", org: "Kontrapunkt" },
+      { city: "Milan", country: "Italie", lat: 45.4642, lng: 9.19, type: "stage", promo: 2025, student: "Inès Blanchard", org: "Studio Lissoni" },
+    ];
+    createMarkers();
+    updateView();
+    console.info('⚡ Données de démonstration chargées. Vérifiez votre SHEET_URL.');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  CSV PARSER (for Google Sheets integration)
+// ══════════════════════════════════════════════
+function parseCSV(csv) {
+  const lines = csv.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+  return lines.slice(1).map(line => {
+    const values = line.match(/(".*?"|[^",]+)/g)?.map(v => v.replace(/"/g, '').trim()) || [];
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = values[i] || '');
+    return {
+      city: obj.city || obj.ville,
+      country: obj.country || obj.pays,
+      lat: parseFloat(obj.lat || obj.latitude),
+      lng: parseFloat(obj.lng || obj.longitude),
+      type: (obj.type || '').toLowerCase().includes('change') ? 'exchange' : 'stage',
+      promo: parseInt(obj.promo || obj.promotion),
+      student: obj.student || obj.etudiant || obj.élève || '',
+      org: obj.org || obj.organisation || obj.entreprise || obj.école || '',
+    };
+  }).filter(d => !isNaN(d.lat) && !isNaN(d.lng));
+}
+
+
+// ══════════════════════════════════════════════
+//  MAP INITIALIZATION
+// ══════════════════════════════════════════════
+
+// ⚠️  REMPLACEZ par votre token Mapbox (gratuit sur mapbox.com)
+mapboxgl.accessToken = 'pk.eyJ1Ijoic3RyYXRlIiwiYSI6ImNtbTR1b2I0NDBmcmkycXFyMjhobDA2aWwifQ.uB8YsiprpJJtCxiwB99BCQ';
+
+const map = new mapboxgl.Map({
+  container: 'map',
+  // Style sombre et élégant — alternatives :
+  // 'mapbox://styles/mapbox/dark-v11'
+  // 'mapbox://styles/mapbox/navigation-night-v1'
+  style: 'mapbox://styles/mapbox/dark-v11',
+  center: [10, 30],
+  zoom: 1.8,
+  minZoom: 1.2,
+  maxZoom: 12,
+  projection: 'globe',
+  antialias: true,
+});
+
+map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
+
+// Globe atmosphere
+map.on('style.load', () => {
+  map.setFog({
+    color: '#0E0E10',
+    'high-color': '#161619',
+    'horizon-blend': 0.04,
+    'space-color': '#0E0E10',
+    'star-intensity': 0.3,
+  });
+});
+
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let activeType = 'all';
+let activePromo = 'all';
+let markers = [];
+let currentPopup = null;
+
+// ══════════════════════════════════════════════
+//  INIT FILTERS & UI
+// ══════════════════════════════════════════════
+function init() {
+  // Promo filter chips
+  const promos = [...new Set(destinations.map(d => d.promo))].sort((a, b) => b - a);
+  const promoContainer = document.getElementById('promoFilters');
+  promos.forEach(p => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.dataset.filter = p;
+    chip.textContent = p;
+    promoContainer.appendChild(chip);
+  });
+
+  // Type filter events
+  document.getElementById('typeFilters').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    document.querySelectorAll('#typeFilters .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeType = chip.dataset.filter;
+    updateView();
+  });
+
+  // Promo filter events
+  document.getElementById('promoFilters').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    document.querySelectorAll('#promoFilters .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activePromo = chip.dataset.filter === 'all' ? 'all' : parseInt(chip.dataset.filter);
+    updateView();
+  });
+
+  // Panel toggle
+  document.getElementById('panelToggle').addEventListener('click', () => {
+    document.getElementById('panel').classList.toggle('collapsed');
+  });
+
+  // Markers and view are created by loadData() after fetching the sheet
+}
+
+// ══════════════════════════════════════════════
+//  MARKERS
+// ══════════════════════════════════════════════
+function createMarkers() {
+  destinations.forEach((d, i) => {
+    const el = document.createElement('div');
+    el.className = `marker ${d.type === 'exchange' ? 'exchange' : 'stage'}`;
+
+    const marker = new mapboxgl.Marker({ element: el })
+      .setLngLat([d.lng, d.lat])
+      .addTo(map);
+
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openPopup(d);
+    });
+
+    markers.push({ marker, el, data: d });
+  });
+}
+
+function openPopup(d) {
+  if (currentPopup) currentPopup.remove();
+
+  const typeLabel = d.type === 'exchange' ? 'Échange académique' : 'Stage';
+
+  currentPopup = new mapboxgl.Popup({
+    offset: 18,
+    closeButton: true,
+    maxWidth: '300px'
+  })
+    .setLngLat([d.lng, d.lat])
+    .setHTML(`
+      <div class="popup-type ${d.type === 'exchange' ? 'exchange' : 'stage'}">${typeLabel}</div>
+      <div class="popup-city">${d.city}</div>
+      <div class="popup-country">${d.country}</div>
+      <div class="popup-meta">
+        <div class="popup-meta-row">
+          <span class="popup-meta-label">${d.type === 'exchange' ? 'École' : 'Entreprise'}</span>
+          <span class="popup-meta-value">${d.org}</span>
+        </div>
+        <div class="popup-meta-row">
+          <span class="popup-meta-label">Étudiant·e</span>
+          <span class="popup-meta-value">${d.student}</span>
+        </div>
+        <div class="popup-meta-row">
+          <span class="popup-meta-label">Promotion</span>
+          <span class="popup-meta-value">${d.promo}</span>
+        </div>
+      </div>
+    `)
+    .addTo(map);
+
+  map.flyTo({
+    center: [d.lng, d.lat],
+    zoom: Math.max(map.getZoom(), 4),
+    duration: 1200,
+    essential: true
+  });
+}
+
+
+// ══════════════════════════════════════════════
+//  UPDATE VIEW (filter markers + list)
+// ══════════════════════════════════════════════
+function updateView() {
+  const filtered = destinations.filter(d => {
+    const matchType = activeType === 'all' || d.type === activeType;
+    const matchPromo = activePromo === 'all' || d.promo === activePromo;
+    return matchType && matchPromo;
+  });
+
+  // Update markers visibility
+  markers.forEach(m => {
+    const visible = filtered.includes(m.data);
+    m.el.classList.toggle('hidden', !visible);
+  });
+
+  // Update stats
+  const stages = filtered.filter(d => d.type === 'stage');
+  const exchanges = filtered.filter(d => d.type === 'exchange');
+  const countries = new Set(filtered.map(d => d.country));
+
+  document.getElementById('countStages').textContent = stages.length;
+  document.getElementById('countExchanges').textContent = exchanges.length;
+  document.getElementById('countCountries').textContent = countries.size;
+
+  // Update list
+  const list = document.getElementById('destinationList');
+  list.innerHTML = '';
+
+  // Sort: exchanges first, then stages, alphabetical within each group
+  const sorted = [...filtered].sort((a, b) => {
+    if (a.type !== b.type) return a.type === 'exchange' ? 1 : -1;
+    return a.city.localeCompare(b.city);
+  });
+
+  sorted.forEach(d => {
+    const item = document.createElement('div');
+    item.className = 'dest-item';
+    item.innerHTML = `
+      <div class="dest-dot ${d.type === 'exchange' ? 'exchange' : 'stage'}"></div>
+      <div class="dest-info">
+        <div class="dest-city">${d.city}</div>
+        <div class="dest-detail">${d.org} — ${d.student}</div>
+      </div>
+      <div class="dest-promo">${d.promo}</div>
+    `;
+    item.addEventListener('click', () => openPopup(d));
+    list.appendChild(item);
+  });
+
+  document.getElementById('listCount').textContent =
+    `${filtered.length} destination${filtered.length > 1 ? 's' : ''}`;
+}
+
+
+// ══════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════
+map.on('load', () => {
+  init();
+  loadData();
+});
+</script>
+
+</body>
+</html>
