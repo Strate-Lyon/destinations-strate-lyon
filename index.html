@@ -579,6 +579,12 @@
         <button class="chip active" data-filter="all">Toutes</button>
       </div>
     </div>
+    <div class="filter-group">
+      <div class="filter-label">Spécialisation</div>
+      <div class="filter-chips" id="specFilters">
+        <button class="chip active" data-filter="all">Toutes</button>
+      </div>
+    </div>
   </div>
 
   <div class="list-header">
@@ -620,6 +626,7 @@ async function loadData() {
   }
   // Générer les filtres promo APRÈS le chargement des données
   buildPromoFilters();
+  buildSpecFilters();
   createMarkers();
   updateView();
 }
@@ -763,8 +770,9 @@ map.on('style.load', () => {
 // ══════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════
-let activeType = 'all';
-let activePromo = 'all';
+let activeTypes = new Set(); // empty = all
+let activePromos = new Set(); // empty = all
+let activeSpecs = new Set(); // empty = all
 let markers = [];
 let currentPopup = null;
 
@@ -773,23 +781,83 @@ let currentPopup = null;
 //  INIT UI (filters events + panel toggle)
 // ══════════════════════════════════════════════
 function init() {
-  // Type filter events
+  // Type filter events (multi-select)
   document.getElementById('typeFilters').addEventListener('click', e => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
-    document.querySelectorAll('#typeFilters .chip').forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-    activeType = chip.dataset.filter;
+    const filter = chip.dataset.filter;
+    if (filter === 'all') {
+      // "Tous" → reset : tout sélectionné
+      activeTypes.clear();
+      document.querySelectorAll('#typeFilters .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    } else {
+      // Désactiver "Tous"
+      document.querySelector('#typeFilters .chip[data-filter="all"]').classList.remove('active');
+      // Toggle le chip cliqué
+      if (activeTypes.has(filter)) {
+        activeTypes.delete(filter);
+        chip.classList.remove('active');
+      } else {
+        activeTypes.add(filter);
+        chip.classList.add('active');
+      }
+      // Si plus rien de sélectionné → revenir à "Tous"
+      if (activeTypes.size === 0) {
+        document.querySelector('#typeFilters .chip[data-filter="all"]').classList.add('active');
+      }
+    }
     updateView();
   });
 
-  // Promo filter events (via event delegation — works even after chips are rebuilt)
+  // Promo filter events (multi-select)
   document.getElementById('promoFilters').addEventListener('click', e => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
-    document.querySelectorAll('#promoFilters .chip').forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-    activePromo = chip.dataset.filter === 'all' ? 'all' : parseInt(chip.dataset.filter);
+    const filter = chip.dataset.filter;
+    if (filter === 'all') {
+      activePromos.clear();
+      document.querySelectorAll('#promoFilters .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    } else {
+      document.querySelector('#promoFilters .chip[data-filter="all"]').classList.remove('active');
+      const val = parseInt(filter);
+      if (activePromos.has(val)) {
+        activePromos.delete(val);
+        chip.classList.remove('active');
+      } else {
+        activePromos.add(val);
+        chip.classList.add('active');
+      }
+      if (activePromos.size === 0) {
+        document.querySelector('#promoFilters .chip[data-filter="all"]').classList.add('active');
+      }
+    }
+    updateView();
+  });
+
+  // Specialization filter events (multi-select)
+  document.getElementById('specFilters').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const filter = chip.dataset.filter;
+    if (filter === 'all') {
+      activeSpecs.clear();
+      document.querySelectorAll('#specFilters .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    } else {
+      document.querySelector('#specFilters .chip[data-filter="all"]').classList.remove('active');
+      if (activeSpecs.has(filter)) {
+        activeSpecs.delete(filter);
+        chip.classList.remove('active');
+      } else {
+        activeSpecs.add(filter);
+        chip.classList.add('active');
+      }
+      if (activeSpecs.size === 0) {
+        document.querySelector('#specFilters .chip[data-filter="all"]').classList.add('active');
+      }
+    }
     updateView();
   });
 
@@ -833,6 +901,25 @@ function buildPromoFilters() {
     chip.dataset.filter = p;
     chip.textContent = p;
     promoContainer.appendChild(chip);
+  });
+}
+
+
+// ══════════════════════════════════════════════
+//  BUILD SPEC FILTERS (called after data loads)
+// ══════════════════════════════════════════════
+function buildSpecFilters() {
+  const specContainer = document.getElementById('specFilters');
+  const existingChips = specContainer.querySelectorAll('.chip:not([data-filter="all"])');
+  existingChips.forEach(c => c.remove());
+
+  const specs = [...new Set(destinations.map(d => d.specialization).filter(s => s && s.trim()))].sort((a, b) => a.localeCompare(b, 'fr'));
+  specs.forEach(s => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.dataset.filter = s;
+    chip.textContent = s;
+    specContainer.appendChild(chip);
   });
 }
 
@@ -910,9 +997,10 @@ function openPopup(d) {
 // ══════════════════════════════════════════════
 function updateView() {
   const filtered = destinations.filter(d => {
-    const matchType = activeType === 'all' || d.type === activeType;
-    const matchPromo = activePromo === 'all' || d.promo === activePromo;
-    return matchType && matchPromo;
+    const matchType = activeTypes.size === 0 || activeTypes.has(d.type);
+    const matchPromo = activePromos.size === 0 || activePromos.has(d.promo);
+    const matchSpec = activeSpecs.size === 0 || activeSpecs.has(d.specialization);
+    return matchType && matchPromo && matchSpec;
   });
 
   // Update markers visibility
@@ -977,8 +1065,9 @@ function updateView() {
     });
   });
 
+  const uniqueCities = new Set(filtered.map(d => `${d.city}-${d.country}`));
   document.getElementById('listCount').textContent =
-    `${filtered.length} destination${filtered.length > 1 ? 's' : ''}`;
+    `${uniqueCities.size} destination${uniqueCities.size > 1 ? 's' : ''}`;
 }
 
 
