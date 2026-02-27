@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Destinations — École de Design</title>
+<title>Cartographie des Stratos — Strate Lyon</title>
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -22,547 +22,149 @@
     --accent-alumni: #A78BFA;
     --font-display: 'Instrument Serif', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
+    --panel-left-w: 420px;
+    --panel-right-w: 360px;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); overflow: hidden; height: 100vh; width: 100vw; }
+  #map { position: absolute; inset: 0; z-index: 0; }
 
-  body {
-    font-family: var(--font-body);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    overflow: hidden;
-    height: 100vh;
-    width: 100vw;
-  }
-
-  /* ── Map ────────────────────────────────── */
-  #map {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-  }
-
-  /* ── Side Panel ────────────────────────── */
-  .panel {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    bottom: 20px;
-    width: 360px;
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    backdrop-filter: blur(30px);
-    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  /* ── Shared Panel Base ─────────────────── */
+  .panel-base {
+    position: absolute; top: 20px; bottom: 20px;
+    background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px;
+    z-index: 10; display: flex; flex-direction: column; overflow: hidden;
+    backdrop-filter: blur(30px); box-shadow: 0 30px 80px rgba(0,0,0,0.5);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .panel.collapsed {
-    transform: translateX(calc(-100% - 30px));
-  }
+  /* ── Left Panel ────────────────────────── */
+  .panel-left { left: 20px; width: var(--panel-left-w); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .panel-left.collapsed { transform: translateX(calc(-100% - 30px)); }
 
-  .panel-toggle {
-    position: absolute;
-    top: 28px;
-    left: 390px;
-    z-index: 11;
-    width: 40px;
-    height: 40px;
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text-secondary);
-    font-size: 18px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-  }
+  /* ── Right Panel ───────────────────────── */
+  .panel-right { right: 20px; width: var(--panel-right-w); }
+  .panel-right.collapsed { transform: translateX(calc(100% + 30px)); }
 
-  .panel.collapsed ~ .panel-toggle {
-    left: 20px;
+  /* ── Toggle Buttons ────────────────────── */
+  .toggle-btn {
+    position: absolute; top: 28px; z-index: 11; width: 40px; height: 40px;
+    background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text-secondary); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
+  .toggle-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+  #toggleLeft { left: calc(var(--panel-left-w) + 30px); }
+  .panel-left.collapsed ~ #toggleLeft { left: 20px; }
+  #toggleRight { right: calc(var(--panel-right-w) + 30px); }
+  .panel-right.collapsed ~ #toggleRight { right: 20px; }
 
-  .panel-toggle:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-
-  .panel-header {
-    padding: 32px 28px 0;
-  }
-
-  .panel-header h1 {
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 400;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-    margin-bottom: 4px;
-  }
-
-  .panel-header h1 em {
-    font-style: italic;
-    color: var(--accent-stage);
-  }
-
-  .panel-header .subtitle {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-top: 6px;
-    font-weight: 300;
-  }
+  /* ── Header ────────────────────────────── */
+  .panel-header { padding: 28px 24px 0; }
+  .panel-header h1 { font-family: var(--font-display); font-size: 26px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; white-space: nowrap; }
+  .panel-header h1 em { font-style: italic; color: var(--accent-stage); }
+  .panel-header .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 300; }
 
   /* ── Stats ──────────────────────────────── */
-  .stats-row {
-    display: flex;
-    gap: 8px;
-    padding: 20px 28px;
-  }
-
-  .stat-card {
-    flex: 1;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 12px;
-    transition: border-color 0.2s;
-  }
-
-  .stat-card .number {
-    font-family: var(--font-display);
-    font-size: 24px;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .stat-card .label {
-    font-size: 10px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 500;
-  }
-
+  .stats-row { display: flex; gap: 6px; padding: 14px 24px 0; }
+  .stat-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px; }
+  .stat-card .number { font-family: var(--font-display); font-size: 22px; line-height: 1; margin-bottom: 3px; }
+  .stat-card .label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
   .stat-card.stages .number { color: var(--accent-stage); }
   .stat-card.exchanges .number { color: var(--accent-exchange); }
   .stat-card.alumni .number { color: var(--accent-alumni); }
 
   /* ── Filters ───────────────────────────── */
-  .filters {
-    padding: 0 28px 16px;
-  }
+  .filters { padding: 16px 24px 12px; }
+  .filter-group { margin-bottom: 12px; }
+  .filter-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 500; margin-bottom: 7px; }
+  .filter-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 400; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-family: var(--font-body); }
+  .chip:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+  .chip.active { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); font-weight: 500; }
+  .chip.active.stage-chip { background: var(--accent-stage); border-color: var(--accent-stage); color: var(--bg-primary); }
+  .chip.active.exchange-chip { background: var(--accent-exchange); border-color: var(--accent-exchange); color: var(--bg-primary); }
+  .chip.active.alumni-chip { background: var(--accent-alumni); border-color: var(--accent-alumni); color: var(--bg-primary); }
 
-  .filter-group {
-    margin-bottom: 14px;
-  }
+  /* ── School Banner ─────────────────────── */
+  .school-banner { padding: 12px 24px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); text-align: center; margin-top: auto; flex-shrink: 0; }
 
-  .filter-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-
-  .filter-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .chip {
-    padding: 6px 14px;
-    border-radius: 100px;
-    font-size: 12.5px;
-    font-weight: 400;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: var(--font-body);
-  }
-
-  .chip:hover {
-    border-color: var(--text-secondary);
-    color: var(--text-primary);
-  }
-
-  .chip.active {
-    background: var(--text-primary);
-    color: var(--bg-primary);
-    border-color: var(--text-primary);
-    font-weight: 500;
-  }
-
-  .chip.active.stage-chip {
-    background: var(--accent-stage);
-    border-color: var(--accent-stage);
-    color: var(--bg-primary);
-  }
-
-  .chip.active.exchange-chip {
-    background: var(--accent-exchange);
-    border-color: var(--accent-exchange);
-    color: var(--bg-primary);
-  }
-
-  .chip.active.alumni-chip {
-    background: var(--accent-alumni);
-    border-color: var(--accent-alumni);
-    color: var(--bg-primary);
-  }
+  /* ── Right Panel Header ────────────────── */
+  .list-panel-header { padding: 24px 24px 12px; flex-shrink: 0; }
+  .list-panel-header h2 { font-family: var(--font-display); font-size: 20px; font-weight: 400; }
+  .list-panel-header .count { font-size: 12px; color: var(--text-secondary); font-weight: 300; }
 
   /* ── Destination List ──────────────────── */
-  .list-header {
-    padding: 0 28px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
-
-  .list-header h2 {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-
-  .list-header .count {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 300;
-  }
-
-  .destination-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0 16px 20px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-
-  /* ── Continent Group Headers ───────────── */
-  .continent-header {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    font-weight: 500;
-    padding: 16px 12px 6px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 4px;
-  }
-
-  .continent-header:first-child {
-    padding-top: 4px;
-  }
-
-  .dest-item {
-    padding: 14px 12px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.15s;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-
-  .dest-item:hover {
-    background: var(--bg-hover);
-  }
-
-  .dest-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-top: 6px;
-    flex-shrink: 0;
-  }
-
+  .destination-list { flex: 1; overflow-y: auto; padding: 0 14px 20px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .continent-header { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 500; padding: 14px 12px 6px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+  .continent-header:first-child { padding-top: 4px; }
+  .dest-item { padding: 12px; border-radius: 10px; cursor: pointer; transition: background 0.15s; display: flex; gap: 10px; align-items: flex-start; }
+  .dest-item:hover { background: var(--bg-hover); }
+  .dest-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
   .dest-dot.stage { background: var(--accent-stage); }
   .dest-dot.exchange { background: var(--accent-exchange); }
   .dest-dot.alumni { background: var(--accent-alumni); }
-
   .dest-info { flex: 1; min-width: 0; }
+  .dest-city { font-size: 13.5px; font-weight: 500; margin-bottom: 1px; }
+  .dest-detail { font-size: 11.5px; color: var(--text-secondary); font-weight: 300; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dest-student { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 1px; }
+  .dest-promo { font-size: 11px; color: var(--text-muted); font-weight: 400; white-space: nowrap; }
 
-  .dest-city {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 2px;
-  }
-
-  .dest-detail {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 300;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .dest-student {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-weight: 400;
-    margin-top: 2px;
-  }
-
-  .dest-promo {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-weight: 400;
-    white-space: nowrap;
-  }
-
-  /* ── Mapbox Popup ──────────────────────── */
-  .mapboxgl-popup-content {
-    background: var(--bg-panel) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 14px !important;
-    padding: 22px 24px !important;
-    color: var(--text-primary) !important;
-    font-family: var(--font-body) !important;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
-    min-width: 240px;
-  }
-
-  .mapboxgl-popup-tip {
-    border-top-color: var(--bg-panel) !important;
-  }
-
-  .mapboxgl-popup-close-button {
-    color: var(--text-muted) !important;
-    font-size: 20px !important;
-    right: 10px !important;
-    top: 8px !important;
-  }
-
-  .popup-type {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 500;
-    margin-bottom: 10px;
-  }
-
+  /* ── Popup ──────────────────────────────── */
+  .mapboxgl-popup-content { background: var(--bg-panel) !important; border: 1px solid var(--border) !important; border-radius: 14px !important; padding: 22px 24px !important; color: var(--text-primary) !important; font-family: var(--font-body) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; min-width: 240px; }
+  .mapboxgl-popup-tip { border-top-color: var(--bg-panel) !important; }
+  .mapboxgl-popup-close-button { color: var(--text-muted) !important; font-size: 20px !important; right: 10px !important; top: 8px !important; }
+  .popup-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; margin-bottom: 10px; }
   .popup-type.stage { color: var(--accent-stage); }
   .popup-type.exchange { color: var(--accent-exchange); }
   .popup-type.alumni { color: var(--accent-alumni); }
-
-  .popup-student {
-    font-family: var(--font-display);
-    font-size: 24px;
-    line-height: 1.15;
-    margin-bottom: 6px;
-  }
-
-  .popup-org {
-    font-size: 15px;
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-
-  .popup-specialization {
-    font-size: 12.5px;
-    color: var(--text-secondary);
-    font-weight: 300;
-    font-style: italic;
-    margin-bottom: 4px;
-  }
-
-  .popup-link {
-    display: inline-block;
-    font-size: 11.5px;
-    color: var(--text-muted);
-    text-decoration: none;
-    margin-bottom: 10px;
-    transition: color 0.15s;
-    letter-spacing: 0.01em;
-  }
-
-  .popup-link:hover {
-    color: var(--text-primary);
-  }
-
-  .popup-location {
-    font-size: 13px;
-    color: var(--text-secondary);
-    font-weight: 300;
-  }
-
-  .popup-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-  }
-
-  .popup-meta-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-  }
-
-  .popup-meta-label {
-    color: var(--text-muted);
-    font-weight: 400;
-  }
-
-  .popup-meta-value {
-    color: var(--text-primary);
-    font-weight: 500;
-    text-align: right;
-  }
-
-  /* ── Custom Markers ────────────────────── */
-  .marker {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, opacity 0.3s;
-    border: 2px solid var(--bg-primary);
-  }
-
-  .marker:hover {
-    transform: scale(1.6);
-    z-index: 10;
-  }
-
-  .marker.stage {
-    background: var(--accent-stage);
-    box-shadow: 0 0 0 3px rgba(232,168,95,0.2), 0 2px 8px rgba(232,168,95,0.3);
-  }
-
-  .marker.exchange {
-    background: var(--accent-exchange);
-    box-shadow: 0 0 0 3px rgba(111,163,239,0.2), 0 2px 8px rgba(111,163,239,0.3);
-  }
-
-  .marker.alumni {
-    background: var(--accent-alumni);
-    box-shadow: 0 0 0 3px rgba(167,139,250,0.2), 0 2px 8px rgba(167,139,250,0.3);
-  }
-
-  .marker.stage:hover {
-    box-shadow: 0 0 0 6px rgba(232,168,95,0.25), 0 4px 20px rgba(232,168,95,0.4);
-  }
-
-  .marker.exchange:hover {
-    box-shadow: 0 0 0 6px rgba(111,163,239,0.25), 0 4px 20px rgba(111,163,239,0.4);
-  }
-
-  .marker.alumni:hover {
-    box-shadow: 0 0 0 6px rgba(167,139,250,0.25), 0 4px 20px rgba(167,139,250,0.4);
-  }
-
-  .marker.hidden {
-    opacity: 0;
-    pointer-events: none;
-    transform: scale(0);
-  }
-
-  /* ── School Banner ─────────────────────── */
-  .school-banner {
-    padding: 14px 28px 18px;
-    border-top: 1px solid var(--border);
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.03em;
-    font-weight: 400;
-    text-align: center;
-  }
+  .popup-student { font-family: var(--font-display); font-size: 24px; line-height: 1.15; margin-bottom: 6px; }
+  .popup-org { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .popup-specialization { font-size: 12.5px; color: var(--text-secondary); font-weight: 300; font-style: italic; margin-bottom: 4px; }
+  .popup-link { display: inline-block; font-size: 11.5px; color: var(--text-muted); text-decoration: none; margin-bottom: 10px; transition: color 0.15s; }
+  .popup-link:hover { color: var(--text-primary); }
+  .popup-location { font-size: 13px; color: var(--text-secondary); font-weight: 300; }
+  .popup-meta { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--border); }
 
   /* ── Responsive ─────────────────────────── */
+  @media (max-width: 900px) { .panel-right, #toggleRight { display: none; } }
   @media (max-width: 768px) {
-    .panel {
-      width: calc(100% - 40px);
-      top: auto;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
-      height: 55vh;
-      border-radius: 20px 20px 0 0;
-    }
-
-    .panel.collapsed {
-      transform: translateY(calc(100% - 60px));
-    }
-
-    .panel-toggle {
-      display: none;
-    }
+    .panel-left { top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 55vh; border-radius: 20px 20px 0 0; }
+    .panel-left.collapsed { transform: translateY(calc(100% - 60px)); }
+    #toggleLeft { display: none; }
   }
 
   /* ── Animations ────────────────────────── */
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .panel-header, .stats-row, .filters, .list-header, .destination-list {
-    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  }
-
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .panel-header, .stats-row, .filters { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
   .stats-row { animation-delay: 0.05s; }
   .filters { animation-delay: 0.1s; }
-  .list-header { animation-delay: 0.15s; }
-  .destination-list { animation-delay: 0.2s; }
 
-  /* ── Mapbox Overrides ──────────────────── */
-  .mapboxgl-ctrl-bottom-left,
-  .mapboxgl-ctrl-bottom-right {
-    opacity: 0.4;
-    transition: opacity 0.2s;
-  }
-  .mapboxgl-ctrl-bottom-left:hover,
-  .mapboxgl-ctrl-bottom-right:hover {
-    opacity: 1;
-  }
+  .mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-bottom-right { opacity: 0.4; transition: opacity 0.2s; }
+  .mapboxgl-ctrl-bottom-left:hover, .mapboxgl-ctrl-bottom-right:hover { opacity: 1; }
 </style>
 </head>
 <body>
 
 <div id="map"></div>
 
-<div class="panel" id="panel">
+<!-- LEFT PANEL: Stats & Filters -->
+<div class="panel-base panel-left" id="panelLeft">
   <div class="panel-header">
-    <h1>Cartographie<br>des <em>Stratos</em></h1>
+    <h1>Cartographie des <em>Stratos</em></h1>
     <p class="subtitle">Stages, échanges académiques & alumni</p>
   </div>
-
   <div class="stats-row">
-    <div class="stat-card stages">
-      <div class="number" id="countStages">0</div>
-      <div class="label">Stages</div>
-    </div>
-    <div class="stat-card exchanges">
-      <div class="number" id="countExchanges">0</div>
-      <div class="label">Échanges</div>
-    </div>
-    <div class="stat-card alumni">
-      <div class="number" id="countAlumni">0</div>
-      <div class="label">Alumni</div>
-    </div>
-    <div class="stat-card">
-      <div class="number" id="countCountries">0</div>
-      <div class="label">Pays</div>
-    </div>
+    <div class="stat-card stages"><div class="number" id="countStages">0</div><div class="label">Stages</div></div>
+    <div class="stat-card exchanges"><div class="number" id="countExchanges">0</div><div class="label">Échanges</div></div>
+    <div class="stat-card alumni"><div class="number" id="countAlumni">0</div><div class="label">Alumni</div></div>
   </div>
-
+  <div class="stats-row" style="padding-top:0">
+    <div class="stat-card"><div class="number" id="countStratos">0</div><div class="label">Stratos</div></div>
+    <div class="stat-card"><div class="number" id="countCities">0</div><div class="label">Villes</div></div>
+    <div class="stat-card"><div class="number" id="countCountries">0</div><div class="label">Pays</div></div>
+  </div>
   <div class="filters">
     <div class="filter-group">
       <div class="filter-label">Type</div>
@@ -575,603 +177,226 @@
     </div>
     <div class="filter-group">
       <div class="filter-label">Promotion</div>
-      <div class="filter-chips" id="promoFilters">
-        <button class="chip active" data-filter="all">Toutes</button>
-      </div>
+      <div class="filter-chips" id="promoFilters"><button class="chip active" data-filter="all">Toutes</button></div>
     </div>
     <div class="filter-group">
       <div class="filter-label">Spécialisation</div>
-      <div class="filter-chips" id="specFilters">
-        <button class="chip active" data-filter="all">Toutes</button>
-      </div>
+      <div class="filter-chips" id="specFilters"><button class="chip active" data-filter="all">Toutes</button></div>
     </div>
   </div>
-
-  <div class="list-header">
-    <h2>Destinations</h2>
-    <span class="count" id="listCount">0 résultats</span>
-  </div>
-
-  <div class="destination-list" id="destinationList"></div>
-
-  <div class="school-banner">
-    Strate, École de Design — Lyon
-  </div>
+  <div class="school-banner">Strate, École de Design — Lyon</div>
 </div>
+<button class="toggle-btn" id="toggleLeft">☰</button>
 
-<button class="panel-toggle" id="panelToggle">☰</button>
+<!-- RIGHT PANEL: Destination List -->
+<div class="panel-base panel-right" id="panelRight">
+  <div class="list-panel-header">
+    <h2>Destinations</h2>
+    <span class="count" id="listCount">0 destinations</span>
+  </div>
+  <div class="destination-list" id="destinationList"></div>
+</div>
+<button class="toggle-btn" id="toggleRight">☰</button>
 
 <script>
-// ══════════════════════════════════════════════
-//  GOOGLE SHEET DATA SOURCE
-// ══════════════════════════════════════════════
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-0YFn6d_UV6M6IPHTgm_Twik3wWjmXI1pAH3lfg3ACTn_mHc9Nr7EQP0X9tDQCAT6EVVKnSwu-VyR/pub?gid=0&single=true&output=csv';
-
 let destinations = [];
 
 async function loadData() {
   try {
-    const response = await fetch(SHEET_URL);
-    const csv = await response.text();
-    destinations = parseCSV(csv);
-  } catch (err) {
-    console.error('Erreur de chargement du Google Sheet :', err);
-    // Données de démonstration en cas d'erreur
+    const r = await fetch(SHEET_URL); destinations = parseCSV(await r.text());
+  } catch (e) {
+    console.error('Erreur chargement:', e);
     destinations = [
-      { student: "Paul C", promo: 2025, type: "stage", country: "France", city: "Lyon", lat: 45.764, lng: 4.8357, org: "Strate", specialization: "Design produit", linkedin: "", website: "https://www.stfrancais.com" },
-      { student: "Léa Capaloux", promo: 2024, type: "stage", country: "Japon", city: "Tokyo", lat: 35.6762, lng: 139.6503, org: "ULTRA LAB Design", specialization: "Design industriel", linkedin: "", website: "" },
-      { student: "Baptiste Romarion", promo: 2026, type: "exchange", country: "Suède", city: "Stockholm", lat: 59.3293, lng: 18.0686, org: "Konstfack", specialization: "Design interaction", linkedin: "", website: "https://www.konstfack.se" },
+      { student:"Paul C", promo:2025, type:"stage", country:"France", city:"Lyon", lat:45.764, lng:4.8357, org:"Strate", specialization:"Design produit", linkedin:"", website:"" },
+      { student:"Léa Capaloux", promo:2024, type:"stage", country:"Japon", city:"Tokyo", lat:35.6762, lng:139.6503, org:"ULTRA LAB Design", specialization:"Design industriel", linkedin:"", website:"" },
+      { student:"Baptiste Romarion", promo:2026, type:"exchange", country:"Suède", city:"Stockholm", lat:59.3293, lng:18.0686, org:"Konstfack", specialization:"Design interaction", linkedin:"", website:"" },
     ];
-    console.info('⚡ Données de démonstration chargées. Vérifiez votre SHEET_URL.');
   }
-  // Générer les filtres promo APRÈS le chargement des données
-  // Assign original indices for click lookups
-  destinations.forEach((d, i) => d._origIndex = i);
-  buildPromoFilters();
-  buildSpecFilters();
-  createMarkers();
-  updateView();
+  destinations.forEach((d,i) => d._origIndex = i);
+  buildPromoFilters(); buildSpecFilters(); createMarkers(); updateView();
 }
 
-
-// ══════════════════════════════════════════════
-//  CSV PARSER
-// ══════════════════════════════════════════════
 function parseCSV(csv) {
   const lines = csv.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
-  return lines.slice(1).filter(line => line.trim()).map(line => {
-    // Parser qui gère correctement les cellules vides entre virgules
-    const values = [];
-    let current = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        inQuotes = !inQuotes;
-      } else if (ch === ',' && !inQuotes) {
-        values.push(current.trim());
-        current = '';
-      } else {
-        current += ch;
-      }
-    }
-    values.push(current.trim());
-
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = values[i] || '');
-    // Détection du type
-    const rawType = (obj.type || obj.statut || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    let type = 'stage';
-    if (rawType.includes('change')) type = 'exchange';
-    else if (rawType.includes('alumni')) type = 'alumni';
-    else if (rawType.includes('stage')) type = 'stage';
-
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g,'').toLowerCase());
+  return lines.slice(1).filter(l => l.trim()).map(line => {
+    const values = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) { const c = line[i]; if (c==='"') inQ=!inQ; else if (c===','&&!inQ){values.push(cur.trim());cur='';} else cur+=c; }
+    values.push(cur.trim());
+    const obj = {}; headers.forEach((h,i) => obj[h] = values[i]||'');
+    const raw = (obj.type||obj.statut||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    let type = 'stage'; if (raw.includes('change')) type='exchange'; else if (raw.includes('alumni')) type='alumni';
     return {
-      student: obj.student || obj.etudiant || obj['étudiant'] || obj['nom'] || '',
-      promo: parseInt(obj.promo || obj.promotion || obj['année'] || obj.annee),
-      type,
-      country: obj.country || obj.pays || '',
-      city: obj.city || obj.ville || '',
-      lat: parseFloat(obj.lat || obj.latitude),
-      lng: parseFloat(obj.lng || obj.longitude),
-      org: obj.org || obj.organisation || obj.entreprise || obj['école'] || obj.ecole || '',
-      specialization: obj.specialization || obj['spécialisation'] || obj.specialisation || obj['spécialisations'] || obj.specialisations || obj['spécialité'] || obj.specialite || '',
-      linkedin: obj.linkedin || obj['linkedin url'] || '',
-      website: obj.website || obj['url org'] || obj['site'] || obj['site web'] || obj['url'] || '',
+      student: obj.student||obj.etudiant||obj['étudiant']||obj['nom']||'',
+      promo: parseInt(obj.promo||obj.promotion||obj['année']||obj.annee),
+      type, country: obj.country||obj.pays||'', city: obj.city||obj.ville||'',
+      lat: parseFloat(obj.lat||obj.latitude), lng: parseFloat(obj.lng||obj.longitude),
+      org: obj.org||obj.organisation||obj.entreprise||obj['école']||obj.ecole||'',
+      specialization: obj.specialization||obj['spécialisation']||obj.specialisation||obj['spécialisations']||obj.specialisations||obj['spécialité']||obj.specialite||'',
+      linkedin: obj.linkedin||obj['linkedin url']||'',
+      website: obj.website||obj['url org']||obj['site']||obj['site web']||obj['url']||'',
     };
   }).filter(d => !isNaN(d.lat) && !isNaN(d.lng));
 }
 
-
-// ══════════════════════════════════════════════
-//  CONTINENT MAPPING
-// ══════════════════════════════════════════════
-const COUNTRY_TO_CONTINENT = {
-  // Europe
-  'france': 'Europe', 'allemagne': 'Europe', 'espagne': 'Europe', 'italie': 'Europe',
-  'royaume-uni': 'Europe', 'angleterre': 'Europe', 'pays-bas': 'Europe', 'belgique': 'Europe',
-  'suisse': 'Europe', 'suède': 'Europe', 'norvège': 'Europe', 'danemark': 'Europe',
-  'finlande': 'Europe', 'portugal': 'Europe', 'irlande': 'Europe', 'autriche': 'Europe',
-  'pologne': 'Europe', 'république tchèque': 'Europe', 'tchéquie': 'Europe',
-  'grèce': 'Europe', 'hongrie': 'Europe', 'roumanie': 'Europe', 'islande': 'Europe',
-  'croatie': 'Europe', 'ecosse': 'Europe', 'écosse': 'Europe', 'luxembourg': 'Europe',
-  'estonie': 'Europe', 'lettonie': 'Europe', 'lituanie': 'Europe', 'slovénie': 'Europe',
-  'slovaquie': 'Europe', 'serbie': 'Europe', 'bulgarie': 'Europe', 'malte': 'Europe',
-  'chypre': 'Europe', 'monténégro': 'Europe', 'bosnie': 'Europe', 'albanie': 'Europe',
-  'macédoine': 'Europe', 'ukraine': 'Europe', 'biélorussie': 'Europe', 'moldavie': 'Europe',
-  'turquie': 'Europe',
-  // Asie
-  'japon': 'Asie', 'chine': 'Asie', 'corée du sud': 'Asie', 'corée': 'Asie',
-  'inde': 'Asie', 'thaïlande': 'Asie', 'vietnam': 'Asie', 'indonésie': 'Asie',
-  'malaisie': 'Asie', 'singapour': 'Asie', 'philippines': 'Asie', 'taïwan': 'Asie',
-  'taiwan': 'Asie', 'hong kong': 'Asie', 'sri lanka': 'Asie', 'népal': 'Asie',
-  'cambodge': 'Asie', 'myanmar': 'Asie', 'laos': 'Asie', 'bangladesh': 'Asie',
-  'pakistan': 'Asie', 'israël': 'Asie', 'liban': 'Asie', 'jordanie': 'Asie',
-  'émirats arabes unis': 'Asie', 'qatar': 'Asie', 'arabie saoudite': 'Asie',
-  // Amérique du Nord
-  'états-unis': 'Amérique du Nord', 'etats-unis': 'Amérique du Nord', 'usa': 'Amérique du Nord',
-  'canada': 'Amérique du Nord', 'mexique': 'Amérique du Nord',
-  // Amérique du Sud
-  'brésil': 'Amérique du Sud', 'bresil': 'Amérique du Sud', 'argentine': 'Amérique du Sud',
-  'chili': 'Amérique du Sud', 'colombie': 'Amérique du Sud', 'pérou': 'Amérique du Sud',
-  'uruguay': 'Amérique du Sud', 'équateur': 'Amérique du Sud', 'bolivie': 'Amérique du Sud',
-  'venezuela': 'Amérique du Sud', 'paraguay': 'Amérique du Sud',
-  'costa rica': 'Amérique du Nord', 'panama': 'Amérique du Nord',
-  'cuba': 'Amérique du Nord', 'guatemala': 'Amérique du Nord',
-  // Afrique
-  'maroc': 'Afrique', 'tunisie': 'Afrique', 'algérie': 'Afrique', 'sénégal': 'Afrique',
-  'afrique du sud': 'Afrique', 'égypte': 'Afrique', 'kenya': 'Afrique',
-  'nigeria': 'Afrique', 'ghana': 'Afrique', 'tanzanie': 'Afrique',
-  'côte d\'ivoire': 'Afrique', 'cameroun': 'Afrique', 'éthiopie': 'Afrique',
-  'mozambique': 'Afrique', 'madagascar': 'Afrique', 'ouganda': 'Afrique',
-  'rwanda': 'Afrique', 'mali': 'Afrique', 'burkina faso': 'Afrique',
-  // Océanie
-  'australie': 'Océanie', 'nouvelle-zélande': 'Océanie', 'nouvelle zélande': 'Océanie',
-  'fidji': 'Océanie',
+const CC = {
+  'france':'Europe','allemagne':'Europe','espagne':'Europe','italie':'Europe','royaume-uni':'Europe','angleterre':'Europe',
+  'pays-bas':'Europe','belgique':'Europe','suisse':'Europe','suède':'Europe','norvège':'Europe','danemark':'Europe',
+  'finlande':'Europe','portugal':'Europe','irlande':'Europe','autriche':'Europe','pologne':'Europe',
+  'république tchèque':'Europe','tchéquie':'Europe','grèce':'Europe','hongrie':'Europe','roumanie':'Europe',
+  'islande':'Europe','croatie':'Europe','écosse':'Europe','ecosse':'Europe','luxembourg':'Europe',
+  'estonie':'Europe','lettonie':'Europe','lituanie':'Europe','slovénie':'Europe','slovaquie':'Europe',
+  'serbie':'Europe','bulgarie':'Europe','malte':'Europe','chypre':'Europe','monténégro':'Europe',
+  'bosnie':'Europe','albanie':'Europe','macédoine':'Europe','ukraine':'Europe','turquie':'Europe',
+  'japon':'Asie','chine':'Asie','corée du sud':'Asie','corée':'Asie','inde':'Asie','thaïlande':'Asie',
+  'vietnam':'Asie','indonésie':'Asie','malaisie':'Asie','singapour':'Asie','philippines':'Asie',
+  'taïwan':'Asie','taiwan':'Asie','hong kong':'Asie','sri lanka':'Asie','népal':'Asie','cambodge':'Asie',
+  'pakistan':'Asie','israël':'Asie','liban':'Asie','jordanie':'Asie','émirats arabes unis':'Asie','qatar':'Asie','arabie saoudite':'Asie',
+  'états-unis':'Amérique du Nord','etats-unis':'Amérique du Nord','usa':'Amérique du Nord',
+  'canada':'Amérique du Nord','mexique':'Amérique du Nord','costa rica':'Amérique du Nord','panama':'Amérique du Nord',
+  'brésil':'Amérique du Sud','bresil':'Amérique du Sud','argentine':'Amérique du Sud','chili':'Amérique du Sud',
+  'colombie':'Amérique du Sud','pérou':'Amérique du Sud','uruguay':'Amérique du Sud','équateur':'Amérique du Sud',
+  'bolivie':'Amérique du Sud','venezuela':'Amérique du Sud','paraguay':'Amérique du Sud',
+  'maroc':'Afrique','tunisie':'Afrique','algérie':'Afrique','sénégal':'Afrique','afrique du sud':'Afrique',
+  'égypte':'Afrique','kenya':'Afrique','nigeria':'Afrique','ghana':'Afrique','tanzanie':'Afrique',
+  "côte d'ivoire":'Afrique','cameroun':'Afrique','éthiopie':'Afrique','madagascar':'Afrique','rwanda':'Afrique',
+  'australie':'Océanie','nouvelle-zélande':'Océanie','nouvelle zélande':'Océanie','fidji':'Océanie',
 };
+const CO = ['Europe','Asie','Amérique du Nord','Amérique du Sud','Afrique','Océanie','Autre'];
+function getContinent(c){ return CC[(c||'').toLowerCase().trim()]||'Autre'; }
 
-// Continent sort order
-const CONTINENT_ORDER = ['Europe', 'Asie', 'Amérique du Nord', 'Amérique du Sud', 'Afrique', 'Océanie', 'Autre'];
-
-function getContinent(country) {
-  const key = (country || '').toLowerCase().trim();
-  return COUNTRY_TO_CONTINENT[key] || 'Autre';
-}
-
-
-// ══════════════════════════════════════════════
-//  MAP INITIALIZATION
-// ══════════════════════════════════════════════
 mapboxgl.accessToken = 'pk.eyJ1Ijoic3RyYXRlIiwiYSI6ImNtbTR1b2I0NDBmcmkycXFyMjhobDA2aWwifQ.uB8YsiprpJJtCxiwB99BCQ';
+const map = new mapboxgl.Map({ container:'map', style:'mapbox://styles/mapbox/dark-v11', center:[10,30], zoom:1.8, minZoom:1.2, maxZoom:12, projection:'globe', antialias:true });
+map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
+map.on('style.load',()=>{ map.setFog({color:'#0E0E10','high-color':'#161619','horizon-blend':0.04,'space-color':'#0E0E10','star-intensity':0.3}); });
 
-const map = new mapboxgl.Map({
-  container: 'map',
-  style: 'mapbox://styles/mapbox/dark-v11',
-  center: [10, 30],
-  zoom: 1.8,
-  minZoom: 1.2,
-  maxZoom: 12,
-  projection: 'globe',
-  antialias: true,
-});
+let activeTypes=new Set(), activePromos=new Set(), activeSpecs=new Set(), currentPopup=null;
 
-map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
-
-map.on('style.load', () => {
-  map.setFog({
-    color: '#0E0E10',
-    'high-color': '#161619',
-    'horizon-blend': 0.04,
-    'space-color': '#0E0E10',
-    'star-intensity': 0.3,
-  });
-});
-
-
-// ══════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════
-let activeTypes = new Set(); // empty = all
-let activePromos = new Set(); // empty = all
-let activeSpecs = new Set(); // empty = all
-let currentPopup = null;
-
-
-// ══════════════════════════════════════════════
-//  INIT UI (filters events + panel toggle)
-// ══════════════════════════════════════════════
-function init() {
-  // Type filter events (multi-select)
-  document.getElementById('typeFilters').addEventListener('click', e => {
-    const chip = e.target.closest('.chip');
-    if (!chip) return;
-    const filter = chip.dataset.filter;
-    if (filter === 'all') {
-      // "Tous" → reset : tout sélectionné
-      activeTypes.clear();
-      document.querySelectorAll('#typeFilters .chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-    } else {
-      // Désactiver "Tous"
-      document.querySelector('#typeFilters .chip[data-filter="all"]').classList.remove('active');
-      // Toggle le chip cliqué
-      if (activeTypes.has(filter)) {
-        activeTypes.delete(filter);
-        chip.classList.remove('active');
-      } else {
-        activeTypes.add(filter);
-        chip.classList.add('active');
-      }
-      // Si plus rien de sélectionné → revenir à "Tous"
-      if (activeTypes.size === 0) {
-        document.querySelector('#typeFilters .chip[data-filter="all"]').classList.add('active');
-      }
+function setupMultiFilter(id, set, parse) {
+  document.getElementById(id).addEventListener('click', e => {
+    const chip = e.target.closest('.chip'); if(!chip) return;
+    const f = chip.dataset.filter;
+    if(f==='all'){ set.clear(); document.querySelectorAll(`#${id} .chip`).forEach(c=>c.classList.remove('active')); chip.classList.add('active'); }
+    else {
+      document.querySelector(`#${id} .chip[data-filter="all"]`).classList.remove('active');
+      const v = parse?parse(f):f;
+      if(set.has(v)){set.delete(v);chip.classList.remove('active');}else{set.add(v);chip.classList.add('active');}
+      if(set.size===0) document.querySelector(`#${id} .chip[data-filter="all"]`).classList.add('active');
     }
     updateView();
   });
+}
 
-  // Promo filter events (multi-select)
-  document.getElementById('promoFilters').addEventListener('click', e => {
-    const chip = e.target.closest('.chip');
-    if (!chip) return;
-    const filter = chip.dataset.filter;
-    if (filter === 'all') {
-      activePromos.clear();
-      document.querySelectorAll('#promoFilters .chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-    } else {
-      document.querySelector('#promoFilters .chip[data-filter="all"]').classList.remove('active');
-      const val = parseInt(filter);
-      if (activePromos.has(val)) {
-        activePromos.delete(val);
-        chip.classList.remove('active');
-      } else {
-        activePromos.add(val);
-        chip.classList.add('active');
-      }
-      if (activePromos.size === 0) {
-        document.querySelector('#promoFilters .chip[data-filter="all"]').classList.add('active');
-      }
-    }
-    updateView();
+function init(){
+  setupMultiFilter('typeFilters',activeTypes);
+  setupMultiFilter('promoFilters',activePromos,v=>parseInt(v));
+  setupMultiFilter('specFilters',activeSpecs);
+  document.getElementById('toggleLeft').addEventListener('click',()=>{ document.getElementById('panelLeft').classList.toggle('collapsed'); updateMapPadding(); });
+  document.getElementById('toggleRight').addEventListener('click',()=>{ document.getElementById('panelRight').classList.toggle('collapsed'); updateMapPadding(); });
+}
+
+function updateMapPadding(){
+  const lOpen=!document.getElementById('panelLeft').classList.contains('collapsed');
+  const rOpen=!document.getElementById('panelRight').classList.contains('collapsed');
+  const mob=window.innerWidth<=768;
+  if(mob) map.easeTo({padding:{top:0,left:0,right:0,bottom:lOpen?window.innerHeight*0.55:0},duration:400});
+  else map.easeTo({padding:{top:0,left:lOpen?440:0,right:rOpen?380:0,bottom:0},duration:400});
+}
+
+function buildPromoFilters(){
+  const c=document.getElementById('promoFilters');
+  c.querySelectorAll('.chip:not([data-filter="all"])').forEach(e=>e.remove());
+  [...new Set(destinations.map(d=>d.promo).filter(p=>!isNaN(p)))].sort((a,b)=>b-a).forEach(p=>{
+    const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=p;ch.textContent=p;c.appendChild(ch);
   });
-
-  // Specialization filter events (multi-select)
-  document.getElementById('specFilters').addEventListener('click', e => {
-    const chip = e.target.closest('.chip');
-    if (!chip) return;
-    const filter = chip.dataset.filter;
-    if (filter === 'all') {
-      activeSpecs.clear();
-      document.querySelectorAll('#specFilters .chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-    } else {
-      document.querySelector('#specFilters .chip[data-filter="all"]').classList.remove('active');
-      if (activeSpecs.has(filter)) {
-        activeSpecs.delete(filter);
-        chip.classList.remove('active');
-      } else {
-        activeSpecs.add(filter);
-        chip.classList.add('active');
-      }
-      if (activeSpecs.size === 0) {
-        document.querySelector('#specFilters .chip[data-filter="all"]').classList.add('active');
-      }
-    }
-    updateView();
-  });
-
-  // Panel toggle
-  document.getElementById('panelToggle').addEventListener('click', () => {
-    const panel = document.getElementById('panel');
-    panel.classList.toggle('collapsed');
-    updateMapPadding();
+}
+function buildSpecFilters(){
+  const c=document.getElementById('specFilters');
+  c.querySelectorAll('.chip:not([data-filter="all"])').forEach(e=>e.remove());
+  [...new Set(destinations.map(d=>d.specialization).filter(s=>s&&s.trim()))].sort((a,b)=>a.localeCompare(b,'fr')).forEach(s=>{
+    const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch);
   });
 }
 
-// ══════════════════════════════════════════════
-//  MAP PADDING (offset center for left panel)
-// ══════════════════════════════════════════════
-function updateMapPadding() {
-  const panel = document.getElementById('panel');
-  const isCollapsed = panel.classList.contains('collapsed');
-  const isMobile = window.innerWidth <= 768;
-  if (isMobile) {
-    map.easeTo({ padding: { top: 0, left: 0, right: 0, bottom: isCollapsed ? 0 : window.innerHeight * 0.55 }, duration: 400 });
-  } else {
-    map.easeTo({ padding: { top: 0, left: isCollapsed ? 0 : 380, right: 0, bottom: 0 }, duration: 400 });
-  }
-}
+const TC={stage:'#E8A85F',exchange:'#6FA3EF',alumni:'#A78BFA'};
+function toGJ(data){return{type:'FeatureCollection',features:data.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:[d.lng,d.lat]},properties:{type:d.type,_origIndex:d._origIndex}}))};}
 
-
-// ══════════════════════════════════════════════
-//  BUILD PROMO FILTERS (called after data loads)
-// ══════════════════════════════════════════════
-function buildPromoFilters() {
-  const promoContainer = document.getElementById('promoFilters');
-  // Garder le bouton "Toutes", supprimer les anciens chips promo
-  const existingChips = promoContainer.querySelectorAll('.chip:not([data-filter="all"])');
-  existingChips.forEach(c => c.remove());
-
-  // Extraire les promos uniques et les trier (plus récentes en premier)
-  const promos = [...new Set(destinations.map(d => d.promo).filter(p => !isNaN(p)))].sort((a, b) => b - a);
-  promos.forEach(p => {
-    const chip = document.createElement('button');
-    chip.className = 'chip';
-    chip.dataset.filter = p;
-    chip.textContent = p;
-    promoContainer.appendChild(chip);
+function createMarkers(){
+  ['cluster-circles','cluster-count','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
+  if(map.getSource('destinations'))map.removeSource('destinations');
+  map.addSource('destinations',{type:'geojson',data:toGJ(destinations),cluster:true,clusterMaxZoom:12,clusterRadius:45});
+  map.addLayer({id:'cluster-circles',type:'circle',source:'destinations',filter:['has','point_count'],paint:{'circle-color':'#F0EDE8','circle-opacity':0.9,'circle-radius':['step',['get','point_count'],18,5,24,15,32],'circle-stroke-width':2,'circle-stroke-color':'rgba(240,237,232,0.2)'}});
+  map.addLayer({id:'cluster-count',type:'symbol',source:'destinations',filter:['has','point_count'],layout:{'text-field':'{point_count_abbreviated}','text-size':13,'text-font':['DIN Pro Medium','Arial Unicode MS Regular']},paint:{'text-color':'#0E0E10'}});
+  ['stage','exchange','alumni'].forEach(t=>{
+    map.addLayer({id:`unclustered-${t}`,type:'circle',source:'destinations',filter:['all',['!',['has','point_count']],['==',['get','type'],t]],paint:{'circle-color':TC[t],'circle-radius':7,'circle-stroke-width':2,'circle-stroke-color':'#0E0E10','circle-opacity':0.95}});
+  });
+  map.on('click','cluster-circles',e=>{
+    const f=map.queryRenderedFeatures(e.point,{layers:['cluster-circles']});
+    map.getSource('destinations').getClusterExpansionZoom(f[0].properties.cluster_id,(err,z)=>{if(!err)map.flyTo({center:f[0].geometry.coordinates,zoom:z+0.5,duration:800});});
+  });
+  ['unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{
+    map.on('click',id,e=>{const d=destinations[e.features[0].properties._origIndex];if(d)openPopup(d);});
+  });
+  ['cluster-circles','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{
+    map.on('mouseenter',id,()=>{map.getCanvas().style.cursor='pointer';});
+    map.on('mouseleave',id,()=>{map.getCanvas().style.cursor='';});
   });
 }
 
+function getTypeLabel(t){return t==='exchange'?'Échange':t==='alumni'?'Alumni':'Stage';}
 
-// ══════════════════════════════════════════════
-//  BUILD SPEC FILTERS (called after data loads)
-// ══════════════════════════════════════════════
-function buildSpecFilters() {
-  const specContainer = document.getElementById('specFilters');
-  const existingChips = specContainer.querySelectorAll('.chip:not([data-filter="all"])');
-  existingChips.forEach(c => c.remove());
-
-  const specs = [...new Set(destinations.map(d => d.specialization).filter(s => s && s.trim()))].sort((a, b) => a.localeCompare(b, 'fr'));
-  specs.forEach(s => {
-    const chip = document.createElement('button');
-    chip.className = 'chip';
-    chip.dataset.filter = s;
-    chip.textContent = s;
-    specContainer.appendChild(chip);
-  });
-}
-
-
-// ══════════════════════════════════════════════
-//  CLUSTERED MARKERS (Mapbox native clustering)
-// ══════════════════════════════════════════════
-const TYPE_COLORS = {
-  stage: '#E8A85F',
-  exchange: '#6FA3EF',
-  alumni: '#A78BFA',
-};
-
-function toGeoJSON(data) {
-  return {
-    type: 'FeatureCollection',
-    features: data.map((d) => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [d.lng, d.lat] },
-      properties: { type: d.type, _origIndex: d._origIndex },
-    })),
-  };
-}
-
-function createMarkers() {
-  // Add source with clustering
-  if (map.getSource('destinations')) {
-    map.removeLayer('cluster-circles');
-    map.removeLayer('cluster-count');
-    map.removeLayer('unclustered-stage');
-    map.removeLayer('unclustered-exchange');
-    map.removeLayer('unclustered-alumni');
-    map.removeSource('destinations');
-  }
-
-  map.addSource('destinations', {
-    type: 'geojson',
-    data: toGeoJSON(destinations),
-    cluster: true,
-    clusterMaxZoom: 12,
-    clusterRadius: 45,
-  });
-
-  // Cluster circles
-  map.addLayer({
-    id: 'cluster-circles',
-    type: 'circle',
-    source: 'destinations',
-    filter: ['has', 'point_count'],
-    paint: {
-      'circle-color': '#F0EDE8',
-      'circle-opacity': 0.9,
-      'circle-radius': ['step', ['get', 'point_count'], 18, 5, 24, 15, 32],
-      'circle-stroke-width': 2,
-      'circle-stroke-color': 'rgba(240,237,232,0.2)',
-    },
-  });
-
-  // Cluster count label
-  map.addLayer({
-    id: 'cluster-count',
-    type: 'symbol',
-    source: 'destinations',
-    filter: ['has', 'point_count'],
-    layout: {
-      'text-field': '{point_count_abbreviated}',
-      'text-size': 13,
-      'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
-    },
-    paint: {
-      'text-color': '#0E0E10',
-    },
-  });
-
-  // Individual points — one layer per type for color
-  ['stage', 'exchange', 'alumni'].forEach(type => {
-    map.addLayer({
-      id: `unclustered-${type}`,
-      type: 'circle',
-      source: 'destinations',
-      filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'type'], type]],
-      paint: {
-        'circle-color': TYPE_COLORS[type],
-        'circle-radius': 7,
-        'circle-stroke-width': 2,
-        'circle-stroke-color': '#0E0E10',
-        'circle-opacity': 0.95,
-      },
-    });
-  });
-
-  // Click on cluster → zoom in
-  map.on('click', 'cluster-circles', (e) => {
-    const features = map.queryRenderedFeatures(e.point, { layers: ['cluster-circles'] });
-    const clusterId = features[0].properties.cluster_id;
-    map.getSource('destinations').getClusterExpansionZoom(clusterId, (err, zoom) => {
-      if (err) return;
-      map.flyTo({ center: features[0].geometry.coordinates, zoom: zoom + 0.5, duration: 800 });
-    });
-  });
-
-  // Click on individual point → popup
-  ['unclustered-stage', 'unclustered-exchange', 'unclustered-alumni'].forEach(layerId => {
-    map.on('click', layerId, (e) => {
-      const props = e.features[0].properties;
-      const d = destinations[props._origIndex];
-      if (d) openPopup(d);
-    });
-  });
-
-  // Cursor changes
-  ['cluster-circles', 'unclustered-stage', 'unclustered-exchange', 'unclustered-alumni'].forEach(id => {
-    map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; });
-  });
-}
-
-function updateMapSource(filtered) {
-  const source = map.getSource('destinations');
-  if (source) source.setData(toGeoJSON(filtered));
-}
-
-function getTypeLabel(type) {
-  if (type === 'exchange') return 'Échange académique';
-  if (type === 'alumni') return 'Alumni';
-  return 'Stage';
-}
-
-function getOrgLabel(type) {
-  if (type === 'exchange') return 'École';
-  if (type === 'alumni') return 'Entreprise / Poste';
-  return 'Entreprise';
-}
-
-function openPopup(d) {
-  if (currentPopup) currentPopup.remove();
-
-  currentPopup = new mapboxgl.Popup({
-    offset: 18,
-    closeButton: true,
-    maxWidth: '300px'
-  })
-    .setLngLat([d.lng, d.lat])
+function openPopup(d){
+  if(currentPopup)currentPopup.remove();
+  currentPopup=new mapboxgl.Popup({offset:18,closeButton:true,maxWidth:'300px'})
+    .setLngLat([d.lng,d.lat])
     .setHTML(`
-      <div class="popup-type ${d.type}">${getTypeLabel(d.type)} — ${d.promo}</div>
+      <div class="popup-type ${d.type}">${getTypeLabel(d.type)} — Promo ${d.promo}</div>
       <div class="popup-student">${d.student}</div>
-      ${d.linkedin ? `<a class="popup-link" href="${d.linkedin}" target="_blank" rel="noopener">Profil LinkedIn ↗</a>` : ''}
+      ${d.linkedin?`<a class="popup-link" href="${d.linkedin}" target="_blank" rel="noopener">Profil LinkedIn ↗</a>`:''}
       <div class="popup-org">${d.org}</div>
-      ${d.specialization ? `<div class="popup-specialization">${d.specialization}</div>` : ''}
-      ${d.website ? `<a class="popup-link" href="${d.website}" target="_blank" rel="noopener">Site web ↗</a>` : ''}
-      <div class="popup-meta">
-        <div class="popup-location">${d.city}, ${d.country}</div>
-      </div>
-    `)
-    .addTo(map);
-
-  map.flyTo({
-    center: [d.lng, d.lat],
-    zoom: Math.max(map.getZoom(), 4),
-    duration: 1200,
-    essential: true
-  });
+      ${d.specialization?`<div class="popup-specialization">${d.specialization}</div>`:''}
+      ${d.website?`<a class="popup-link" href="${d.website}" target="_blank" rel="noopener">Site web ↗</a>`:''}
+      <div class="popup-meta"><div class="popup-location">${d.city}, ${d.country}</div></div>
+    `).addTo(map);
+  map.flyTo({center:[d.lng,d.lat],zoom:Math.max(map.getZoom(),4),duration:1200,essential:true});
 }
 
-
-// ══════════════════════════════════════════════
-//  UPDATE VIEW (filter markers + grouped list)
-// ══════════════════════════════════════════════
-function updateView() {
-  const filtered = destinations.filter(d => {
-    const matchType = activeTypes.size === 0 || activeTypes.has(d.type);
-    const matchPromo = activePromos.size === 0 || activePromos.has(d.promo);
-    const matchSpec = activeSpecs.size === 0 || activeSpecs.has(d.specialization);
-    return matchType && matchPromo && matchSpec;
+function updateView(){
+  const filtered=destinations.filter(d=>{
+    return (activeTypes.size===0||activeTypes.has(d.type))&&(activePromos.size===0||activePromos.has(d.promo))&&(activeSpecs.size===0||activeSpecs.has(d.specialization));
   });
+  const src=map.getSource('destinations'); if(src)src.setData(toGJ(filtered));
 
-  // Update map markers (feed filtered data to cluster source)
-  updateMapSource(filtered);
+  // Stats
+  document.getElementById('countStages').textContent=filtered.filter(d=>d.type==='stage').length;
+  document.getElementById('countExchanges').textContent=filtered.filter(d=>d.type==='exchange').length;
+  document.getElementById('countAlumni').textContent=filtered.filter(d=>d.type==='alumni').length;
+  const uStudents=new Set(filtered.map(d=>d.student).filter(s=>s));
+  const uCities=new Set(filtered.map(d=>`${d.city}-${d.country}`));
+  const uCountries=new Set(filtered.map(d=>d.country));
+  document.getElementById('countStratos').textContent=uStudents.size;
+  document.getElementById('countCities').textContent=uCities.size;
+  document.getElementById('countCountries').textContent=uCountries.size;
 
-  // Update stats
-  const stages = filtered.filter(d => d.type === 'stage');
-  const exchanges = filtered.filter(d => d.type === 'exchange');
-  const alumni = filtered.filter(d => d.type === 'alumni');
-  const countries = new Set(filtered.map(d => d.country));
-
-  document.getElementById('countStages').textContent = stages.length;
-  document.getElementById('countExchanges').textContent = exchanges.length;
-  document.getElementById('countAlumni').textContent = alumni.length;
-  document.getElementById('countCountries').textContent = countries.size;
-
-  // Group by continent, then sort cities alphabetically
-  const groups = {};
-  filtered.forEach(d => {
-    const continent = getContinent(d.country);
-    if (!groups[continent]) groups[continent] = [];
-    groups[continent].push(d);
-  });
-
-  // Sort each group by city name
-  Object.values(groups).forEach(arr => arr.sort((a, b) => a.city.localeCompare(b.city, 'fr')));
-
-  // Sort continents by defined order
-  const sortedContinents = Object.keys(groups).sort(
-    (a, b) => CONTINENT_ORDER.indexOf(a) - CONTINENT_ORDER.indexOf(b)
-  );
-
-  // Build list with continent headers
-  const list = document.getElementById('destinationList');
-  list.innerHTML = '';
-
-  sortedContinents.forEach(continent => {
-    // Continent header
-    const header = document.createElement('div');
-    header.className = 'continent-header';
-    header.textContent = `${continent} (${groups[continent].length})`;
-    list.appendChild(header);
-
-    // Destinations in this continent
-    groups[continent].forEach(d => {
-      const item = document.createElement('div');
-      item.className = 'dest-item';
-      item.innerHTML = `
-        <div class="dest-dot ${d.type}"></div>
-        <div class="dest-info">
-          <div class="dest-city">${d.city}, ${d.country}</div>
-          <div class="dest-detail">${d.org}${d.specialization ? ' · ' + d.specialization : ''}</div>
-          <div class="dest-student">${d.student}</div>
-        </div>
-        <div class="dest-promo">${d.promo}</div>
-      `;
-      item.addEventListener('click', () => openPopup(d));
-      list.appendChild(item);
+  // List
+  const groups={};
+  filtered.forEach(d=>{const c=getContinent(d.country);if(!groups[c])groups[c]=[];groups[c].push(d);});
+  Object.values(groups).forEach(a=>a.sort((a,b)=>a.city.localeCompare(b.city,'fr')));
+  const sorted=Object.keys(groups).sort((a,b)=>CO.indexOf(a)-CO.indexOf(b));
+  const list=document.getElementById('destinationList'); list.innerHTML='';
+  sorted.forEach(cont=>{
+    const h=document.createElement('div');h.className='continent-header';h.textContent=`${cont} (${groups[cont].length})`;list.appendChild(h);
+    groups[cont].forEach(d=>{
+      const item=document.createElement('div');item.className='dest-item';
+      item.innerHTML=`<div class="dest-dot ${d.type}"></div><div class="dest-info"><div class="dest-city">${d.city}, ${d.country}</div><div class="dest-detail">${d.org}${d.specialization?' · '+d.specialization:''}</div><div class="dest-student">${d.student}</div></div><div class="dest-promo">${d.promo}</div>`;
+      item.addEventListener('click',()=>openPopup(d));list.appendChild(item);
     });
   });
-
-  const uniqueCities = new Set(filtered.map(d => `${d.city}-${d.country}`));
-  document.getElementById('listCount').textContent =
-    `${uniqueCities.size} destination${uniqueCities.size > 1 ? 's' : ''}`;
+  document.getElementById('listCount').textContent=`${uCities.size} destination${uCities.size>1?'s':''}`;
 }
 
-
-// ══════════════════════════════════════════════
-//  BOOT
-// ══════════════════════════════════════════════
-map.on('load', () => {
-  init();
-  loadData();
-  updateMapPadding();
-  window.addEventListener('resize', updateMapPadding);
-});
+map.on('load',()=>{ init(); loadData(); updateMapPadding(); window.addEventListener('resize',updateMapPadding); });
 </script>
-
 </body>
 </html>
