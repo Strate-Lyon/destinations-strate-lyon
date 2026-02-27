@@ -19,8 +19,7 @@
     --text-muted: #5A5A65;
     --accent-stage: #E8A85F;
     --accent-exchange: #6FA3EF;
-    --accent-stage-dim: rgba(232,168,95,0.15);
-    --accent-exchange-dim: rgba(111,163,239,0.15);
+    --accent-alumni: #A78BFA;
     --font-display: 'Instrument Serif', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
   }
@@ -110,7 +109,7 @@
 
   .panel-header h1 em {
     font-style: italic;
-    color: var(--accent-stage);
+    color: rgb(0, 0, 255);
   }
 
   .panel-header .subtitle {
@@ -123,7 +122,7 @@
   /* ── Stats ──────────────────────────────── */
   .stats-row {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     padding: 20px 28px;
   }
 
@@ -132,19 +131,19 @@
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 14px 16px;
+    padding: 14px 12px;
     transition: border-color 0.2s;
   }
 
   .stat-card .number {
     font-family: var(--font-display);
-    font-size: 26px;
+    font-size: 24px;
     line-height: 1;
     margin-bottom: 4px;
   }
 
   .stat-card .label {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -153,6 +152,7 @@
 
   .stat-card.stages .number { color: var(--accent-stage); }
   .stat-card.exchanges .number { color: var(--accent-exchange); }
+  .stat-card.alumni .number { color: var(--accent-alumni); }
 
   /* ── Filters ───────────────────────────── */
   .filters {
@@ -215,6 +215,12 @@
     color: var(--bg-primary);
   }
 
+  .chip.active.alumni-chip {
+    background: var(--accent-alumni);
+    border-color: var(--accent-alumni);
+    color: var(--bg-primary);
+  }
+
   /* ── Destination List ──────────────────── */
   .list-header {
     padding: 0 28px;
@@ -246,6 +252,22 @@
     scrollbar-color: var(--border) transparent;
   }
 
+  /* ── Continent Group Headers ───────────── */
+  .continent-header {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 16px 12px 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .continent-header:first-child {
+    padding-top: 4px;
+  }
+
   .dest-item {
     padding: 14px 12px;
     border-radius: 10px;
@@ -270,6 +292,7 @@
 
   .dest-dot.stage { background: var(--accent-stage); }
   .dest-dot.exchange { background: var(--accent-exchange); }
+  .dest-dot.alumni { background: var(--accent-alumni); }
 
   .dest-info { flex: 1; min-width: 0; }
 
@@ -328,6 +351,7 @@
 
   .popup-type.stage { color: var(--accent-stage); }
   .popup-type.exchange { color: var(--accent-exchange); }
+  .popup-type.alumni { color: var(--accent-alumni); }
 
   .popup-city {
     font-family: var(--font-display);
@@ -392,12 +416,21 @@
     box-shadow: 0 0 0 3px rgba(111,163,239,0.2), 0 2px 8px rgba(111,163,239,0.3);
   }
 
+  .marker.alumni {
+    background: var(--accent-alumni);
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.2), 0 2px 8px rgba(167,139,250,0.3);
+  }
+
   .marker.stage:hover {
     box-shadow: 0 0 0 6px rgba(232,168,95,0.25), 0 4px 20px rgba(232,168,95,0.4);
   }
 
   .marker.exchange:hover {
     box-shadow: 0 0 0 6px rgba(111,163,239,0.25), 0 4px 20px rgba(111,163,239,0.4);
+  }
+
+  .marker.alumni:hover {
+    box-shadow: 0 0 0 6px rgba(167,139,250,0.25), 0 4px 20px rgba(167,139,250,0.4);
   }
 
   .marker.hidden {
@@ -491,7 +524,7 @@
 <div class="panel" id="panel">
   <div class="panel-header">
     <h1>Nos <em>destinations</em><br>à travers le monde</h1>
-    <p class="subtitle">Stages & échanges académiques — Promos 2020→2025</p>
+    <p class="subtitle">Stages, échanges académiques & alumni</p>
   </div>
 
   <div class="stats-row">
@@ -502,6 +535,10 @@
     <div class="stat-card exchanges">
       <div class="number" id="countExchanges">0</div>
       <div class="label">Échanges</div>
+    </div>
+    <div class="stat-card alumni">
+      <div class="number" id="countAlumni">0</div>
+      <div class="label">Alumni</div>
     </div>
     <div class="stat-card">
       <div class="number" id="countCountries">0</div>
@@ -516,6 +553,7 @@
         <button class="chip active" data-filter="all">Tous</button>
         <button class="chip stage-chip" data-filter="stage">Stages</button>
         <button class="chip exchange-chip" data-filter="exchange">Échanges</button>
+        <button class="chip alumni-chip" data-filter="alumni">Alumni</button>
       </div>
     </div>
     <div class="filter-group">
@@ -535,7 +573,7 @@
 
   <div class="sheet-banner">
     <a href="#" class="sheet-link" title="Modifier les données dans Google Sheet">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       Modifier les données (Google Sheet)
     </a>
   </div>
@@ -547,8 +585,6 @@
 // ══════════════════════════════════════════════
 //  GOOGLE SHEET DATA SOURCE
 // ══════════════════════════════════════════════
-// ⚠️ COLLEZ VOTRE LIEN CSV ICI (voir guide)
-// Fichier → Partager → Publier sur le Web → CSV
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-0YFn6d_UV6M6IPHTgm_Twik3wWjmXI1pAH3lfg3ACTn_mHc9Nr7EQP0X9tDQCAT6EVVKnSwu-VyR/pub?gid=0&single=true&output=csv';
 
 let destinations = [];
@@ -558,61 +594,117 @@ async function loadData() {
     const response = await fetch(SHEET_URL);
     const csv = await response.text();
     destinations = parseCSV(csv);
-    createMarkers();
-    updateView();
   } catch (err) {
     console.error('Erreur de chargement du Google Sheet :', err);
     // Données de démonstration en cas d'erreur
     destinations = [
-      { city: "Tokyo", country: "Japon", lat: 35.6762, lng: 139.6503, type: "stage", promo: 2024, student: "Léa Martin", org: "Muji Design Studio" },
-      { city: "New York", country: "États-Unis", lat: 40.7128, lng: -74.006, type: "stage", promo: 2024, student: "Hugo Bernard", org: "Pentagram" },
-      { city: "Stockholm", country: "Suède", lat: 59.3293, lng: 18.0686, type: "exchange", promo: 2024, student: "Baptiste Robin", org: "Konstfack" },
-      { city: "Helsinki", country: "Finlande", lat: 60.1699, lng: 24.9384, type: "exchange", promo: 2023, student: "Margot Henry", org: "Aalto University" },
-      { city: "Copenhague", country: "Danemark", lat: 55.6761, lng: 12.5683, type: "stage", promo: 2022, student: "Clara Faure", org: "Kontrapunkt" },
-      { city: "Milan", country: "Italie", lat: 45.4642, lng: 9.19, type: "stage", promo: 2025, student: "Inès Blanchard", org: "Studio Lissoni" },
+      { city: "Lyon", country: "France", lat: 45.764, lng: 4.8357, type: "stage", promo: 2025, student: "Paul C", org: "Strate" },
+      { city: "Tokyo", country: "Japon", lat: 35.6762, lng: 139.6503, type: "stage", promo: 2024, student: "Léa Capaloux", org: "ULTRA LAB Design" },
+      { city: "Stockholm", country: "Suède", lat: 59.3293, lng: 18.0686, type: "exchange", promo: 2026, student: "Baptiste Romarion", org: "Konstfack" },
     ];
-    createMarkers();
-    updateView();
     console.info('⚡ Données de démonstration chargées. Vérifiez votre SHEET_URL.');
   }
+  // Générer les filtres promo APRÈS le chargement des données
+  buildPromoFilters();
+  createMarkers();
+  updateView();
 }
 
+
 // ══════════════════════════════════════════════
-//  CSV PARSER (for Google Sheets integration)
+//  CSV PARSER
 // ══════════════════════════════════════════════
 function parseCSV(csv) {
   const lines = csv.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-  return lines.slice(1).map(line => {
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
+  return lines.slice(1).filter(line => line.trim()).map(line => {
     const values = line.match(/(".*?"|[^",]+)/g)?.map(v => v.replace(/"/g, '').trim()) || [];
     const obj = {};
     headers.forEach((h, i) => obj[h] = values[i] || '');
+    // Détection du type
+    const rawType = (obj.type || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    let type = 'stage';
+    if (rawType.includes('change')) type = 'exchange';
+    else if (rawType.includes('alumni')) type = 'alumni';
+    else if (rawType.includes('stage')) type = 'stage';
+
     return {
-      city: obj.city || obj.ville,
-      country: obj.country || obj.pays,
+      city: obj.city || obj.ville || '',
+      country: obj.country || obj.pays || '',
       lat: parseFloat(obj.lat || obj.latitude),
       lng: parseFloat(obj.lng || obj.longitude),
-      type: (obj.type || '').toLowerCase().includes('change') ? 'exchange' : 'stage',
+      type,
       promo: parseInt(obj.promo || obj.promotion),
-      student: obj.student || obj.etudiant || obj.élève || '',
-      org: obj.org || obj.organisation || obj.entreprise || obj.école || '',
+      student: obj.student || obj.etudiant || obj.élève || obj['étudiant'] || '',
+      org: obj.org || obj.organisation || obj.entreprise || obj['école'] || obj.ecole || '',
     };
   }).filter(d => !isNaN(d.lat) && !isNaN(d.lng));
 }
 
 
 // ══════════════════════════════════════════════
+//  CONTINENT MAPPING
+// ══════════════════════════════════════════════
+const COUNTRY_TO_CONTINENT = {
+  // Europe
+  'france': 'Europe', 'allemagne': 'Europe', 'espagne': 'Europe', 'italie': 'Europe',
+  'royaume-uni': 'Europe', 'angleterre': 'Europe', 'pays-bas': 'Europe', 'belgique': 'Europe',
+  'suisse': 'Europe', 'suède': 'Europe', 'norvège': 'Europe', 'danemark': 'Europe',
+  'finlande': 'Europe', 'portugal': 'Europe', 'irlande': 'Europe', 'autriche': 'Europe',
+  'pologne': 'Europe', 'république tchèque': 'Europe', 'tchéquie': 'Europe',
+  'grèce': 'Europe', 'hongrie': 'Europe', 'roumanie': 'Europe', 'islande': 'Europe',
+  'croatie': 'Europe', 'ecosse': 'Europe', 'écosse': 'Europe', 'luxembourg': 'Europe',
+  'estonie': 'Europe', 'lettonie': 'Europe', 'lituanie': 'Europe', 'slovénie': 'Europe',
+  'slovaquie': 'Europe', 'serbie': 'Europe', 'bulgarie': 'Europe', 'malte': 'Europe',
+  'chypre': 'Europe', 'monténégro': 'Europe', 'bosnie': 'Europe', 'albanie': 'Europe',
+  'macédoine': 'Europe', 'ukraine': 'Europe', 'biélorussie': 'Europe', 'moldavie': 'Europe',
+  'turquie': 'Europe',
+  // Asie
+  'japon': 'Asie', 'chine': 'Asie', 'corée du sud': 'Asie', 'corée': 'Asie',
+  'inde': 'Asie', 'thaïlande': 'Asie', 'vietnam': 'Asie', 'indonésie': 'Asie',
+  'malaisie': 'Asie', 'singapour': 'Asie', 'philippines': 'Asie', 'taïwan': 'Asie',
+  'taiwan': 'Asie', 'hong kong': 'Asie', 'sri lanka': 'Asie', 'népal': 'Asie',
+  'cambodge': 'Asie', 'myanmar': 'Asie', 'laos': 'Asie', 'bangladesh': 'Asie',
+  'pakistan': 'Asie', 'israël': 'Asie', 'liban': 'Asie', 'jordanie': 'Asie',
+  'émirats arabes unis': 'Asie', 'qatar': 'Asie', 'arabie saoudite': 'Asie',
+  // Amérique du Nord
+  'états-unis': 'Amérique du Nord', 'etats-unis': 'Amérique du Nord', 'usa': 'Amérique du Nord',
+  'canada': 'Amérique du Nord', 'mexique': 'Amérique du Nord',
+  // Amérique du Sud
+  'brésil': 'Amérique du Sud', 'bresil': 'Amérique du Sud', 'argentine': 'Amérique du Sud',
+  'chili': 'Amérique du Sud', 'colombie': 'Amérique du Sud', 'pérou': 'Amérique du Sud',
+  'uruguay': 'Amérique du Sud', 'équateur': 'Amérique du Sud', 'bolivie': 'Amérique du Sud',
+  'venezuela': 'Amérique du Sud', 'paraguay': 'Amérique du Sud',
+  'costa rica': 'Amérique du Nord', 'panama': 'Amérique du Nord',
+  'cuba': 'Amérique du Nord', 'guatemala': 'Amérique du Nord',
+  // Afrique
+  'maroc': 'Afrique', 'tunisie': 'Afrique', 'algérie': 'Afrique', 'sénégal': 'Afrique',
+  'afrique du sud': 'Afrique', 'égypte': 'Afrique', 'kenya': 'Afrique',
+  'nigeria': 'Afrique', 'ghana': 'Afrique', 'tanzanie': 'Afrique',
+  'côte d\'ivoire': 'Afrique', 'cameroun': 'Afrique', 'éthiopie': 'Afrique',
+  'mozambique': 'Afrique', 'madagascar': 'Afrique', 'ouganda': 'Afrique',
+  'rwanda': 'Afrique', 'mali': 'Afrique', 'burkina faso': 'Afrique',
+  // Océanie
+  'australie': 'Océanie', 'nouvelle-zélande': 'Océanie', 'nouvelle zélande': 'Océanie',
+  'fidji': 'Océanie',
+};
+
+// Continent sort order
+const CONTINENT_ORDER = ['Europe', 'Asie', 'Amérique du Nord', 'Amérique du Sud', 'Afrique', 'Océanie', 'Autre'];
+
+function getContinent(country) {
+  const key = (country || '').toLowerCase().trim();
+  return COUNTRY_TO_CONTINENT[key] || 'Autre';
+}
+
+
+// ══════════════════════════════════════════════
 //  MAP INITIALIZATION
 // ══════════════════════════════════════════════
-
-// ⚠️  REMPLACEZ par votre token Mapbox (gratuit sur mapbox.com)
 mapboxgl.accessToken = 'pk.eyJ1Ijoic3RyYXRlIiwiYSI6ImNtbTR1b2I0NDBmcmkycXFyMjhobDA2aWwifQ.uB8YsiprpJJtCxiwB99BCQ';
 
 const map = new mapboxgl.Map({
   container: 'map',
-  // Style sombre et élégant — alternatives :
-  // 'mapbox://styles/mapbox/dark-v11'
-  // 'mapbox://styles/mapbox/navigation-night-v1'
   style: 'mapbox://styles/mapbox/dark-v11',
   center: [10, 30],
   zoom: 1.8,
@@ -624,7 +716,6 @@ const map = new mapboxgl.Map({
 
 map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
 
-// Globe atmosphere
 map.on('style.load', () => {
   map.setFog({
     color: '#0E0E10',
@@ -644,21 +735,11 @@ let activePromo = 'all';
 let markers = [];
 let currentPopup = null;
 
+
 // ══════════════════════════════════════════════
-//  INIT FILTERS & UI
+//  INIT UI (filters events + panel toggle)
 // ══════════════════════════════════════════════
 function init() {
-  // Promo filter chips
-  const promos = [...new Set(destinations.map(d => d.promo))].sort((a, b) => b - a);
-  const promoContainer = document.getElementById('promoFilters');
-  promos.forEach(p => {
-    const chip = document.createElement('button');
-    chip.className = 'chip';
-    chip.dataset.filter = p;
-    chip.textContent = p;
-    promoContainer.appendChild(chip);
-  });
-
   // Type filter events
   document.getElementById('typeFilters').addEventListener('click', e => {
     const chip = e.target.closest('.chip');
@@ -669,7 +750,7 @@ function init() {
     updateView();
   });
 
-  // Promo filter events
+  // Promo filter events (via event delegation — works even after chips are rebuilt)
   document.getElementById('promoFilters').addEventListener('click', e => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
@@ -683,17 +764,41 @@ function init() {
   document.getElementById('panelToggle').addEventListener('click', () => {
     document.getElementById('panel').classList.toggle('collapsed');
   });
-
-  // Markers and view are created by loadData() after fetching the sheet
 }
+
+
+// ══════════════════════════════════════════════
+//  BUILD PROMO FILTERS (called after data loads)
+// ══════════════════════════════════════════════
+function buildPromoFilters() {
+  const promoContainer = document.getElementById('promoFilters');
+  // Garder le bouton "Toutes", supprimer les anciens chips promo
+  const existingChips = promoContainer.querySelectorAll('.chip:not([data-filter="all"])');
+  existingChips.forEach(c => c.remove());
+
+  // Extraire les promos uniques et les trier (plus récentes en premier)
+  const promos = [...new Set(destinations.map(d => d.promo).filter(p => !isNaN(p)))].sort((a, b) => b - a);
+  promos.forEach(p => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.dataset.filter = p;
+    chip.textContent = p;
+    promoContainer.appendChild(chip);
+  });
+}
+
 
 // ══════════════════════════════════════════════
 //  MARKERS
 // ══════════════════════════════════════════════
 function createMarkers() {
-  destinations.forEach((d, i) => {
+  // Supprimer les anciens marqueurs
+  markers.forEach(m => m.marker.remove());
+  markers = [];
+
+  destinations.forEach(d => {
     const el = document.createElement('div');
-    el.className = `marker ${d.type === 'exchange' ? 'exchange' : 'stage'}`;
+    el.className = `marker ${d.type}`;
 
     const marker = new mapboxgl.Marker({ element: el })
       .setLngLat([d.lng, d.lat])
@@ -708,10 +813,20 @@ function createMarkers() {
   });
 }
 
+function getTypeLabel(type) {
+  if (type === 'exchange') return 'Échange académique';
+  if (type === 'alumni') return 'Alumni';
+  return 'Stage';
+}
+
+function getOrgLabel(type) {
+  if (type === 'exchange') return 'École';
+  if (type === 'alumni') return 'Entreprise / Poste';
+  return 'Entreprise';
+}
+
 function openPopup(d) {
   if (currentPopup) currentPopup.remove();
-
-  const typeLabel = d.type === 'exchange' ? 'Échange académique' : 'Stage';
 
   currentPopup = new mapboxgl.Popup({
     offset: 18,
@@ -720,12 +835,12 @@ function openPopup(d) {
   })
     .setLngLat([d.lng, d.lat])
     .setHTML(`
-      <div class="popup-type ${d.type === 'exchange' ? 'exchange' : 'stage'}">${typeLabel}</div>
+      <div class="popup-type ${d.type}">${getTypeLabel(d.type)}</div>
       <div class="popup-city">${d.city}</div>
       <div class="popup-country">${d.country}</div>
       <div class="popup-meta">
         <div class="popup-meta-row">
-          <span class="popup-meta-label">${d.type === 'exchange' ? 'École' : 'Entreprise'}</span>
+          <span class="popup-meta-label">${getOrgLabel(d.type)}</span>
           <span class="popup-meta-value">${d.org}</span>
         </div>
         <div class="popup-meta-row">
@@ -750,7 +865,7 @@ function openPopup(d) {
 
 
 // ══════════════════════════════════════════════
-//  UPDATE VIEW (filter markers + list)
+//  UPDATE VIEW (filter markers + grouped list)
 // ══════════════════════════════════════════════
 function updateView() {
   const filtered = destinations.filter(d => {
@@ -768,35 +883,56 @@ function updateView() {
   // Update stats
   const stages = filtered.filter(d => d.type === 'stage');
   const exchanges = filtered.filter(d => d.type === 'exchange');
+  const alumni = filtered.filter(d => d.type === 'alumni');
   const countries = new Set(filtered.map(d => d.country));
 
   document.getElementById('countStages').textContent = stages.length;
   document.getElementById('countExchanges').textContent = exchanges.length;
+  document.getElementById('countAlumni').textContent = alumni.length;
   document.getElementById('countCountries').textContent = countries.size;
 
-  // Update list
+  // Group by continent, then sort cities alphabetically
+  const groups = {};
+  filtered.forEach(d => {
+    const continent = getContinent(d.country);
+    if (!groups[continent]) groups[continent] = [];
+    groups[continent].push(d);
+  });
+
+  // Sort each group by city name
+  Object.values(groups).forEach(arr => arr.sort((a, b) => a.city.localeCompare(b.city, 'fr')));
+
+  // Sort continents by defined order
+  const sortedContinents = Object.keys(groups).sort(
+    (a, b) => CONTINENT_ORDER.indexOf(a) - CONTINENT_ORDER.indexOf(b)
+  );
+
+  // Build list with continent headers
   const list = document.getElementById('destinationList');
   list.innerHTML = '';
 
-  // Sort: exchanges first, then stages, alphabetical within each group
-  const sorted = [...filtered].sort((a, b) => {
-    if (a.type !== b.type) return a.type === 'exchange' ? 1 : -1;
-    return a.city.localeCompare(b.city);
-  });
+  sortedContinents.forEach(continent => {
+    // Continent header
+    const header = document.createElement('div');
+    header.className = 'continent-header';
+    header.textContent = `${continent} (${groups[continent].length})`;
+    list.appendChild(header);
 
-  sorted.forEach(d => {
-    const item = document.createElement('div');
-    item.className = 'dest-item';
-    item.innerHTML = `
-      <div class="dest-dot ${d.type === 'exchange' ? 'exchange' : 'stage'}"></div>
-      <div class="dest-info">
-        <div class="dest-city">${d.city}</div>
-        <div class="dest-detail">${d.org} — ${d.student}</div>
-      </div>
-      <div class="dest-promo">${d.promo}</div>
-    `;
-    item.addEventListener('click', () => openPopup(d));
-    list.appendChild(item);
+    // Destinations in this continent
+    groups[continent].forEach(d => {
+      const item = document.createElement('div');
+      item.className = 'dest-item';
+      item.innerHTML = `
+        <div class="dest-dot ${d.type}"></div>
+        <div class="dest-info">
+          <div class="dest-city">${d.city}</div>
+          <div class="dest-detail">${d.org} — ${d.student}</div>
+        </div>
+        <div class="dest-promo">${d.promo}</div>
+      `;
+      item.addEventListener('click', () => openPopup(d));
+      list.appendChild(item);
+    });
   });
 
   document.getElementById('listCount').textContent =
