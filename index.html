@@ -632,7 +632,23 @@ function parseCSV(csv) {
   const lines = csv.trim().split('\n');
   const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
   return lines.slice(1).filter(line => line.trim()).map(line => {
-    const values = line.match(/(".*?"|[^",]+)/g)?.map(v => v.replace(/"/g, '').trim()) || [];
+    // Parser qui gère correctement les cellules vides entre virgules
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    values.push(current.trim());
+
     const obj = {};
     headers.forEach((h, i) => obj[h] = values[i] || '');
     // Détection du type
