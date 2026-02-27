@@ -266,6 +266,10 @@ const CC = {
   'maroc':'Afrique','tunisie':'Afrique','algérie':'Afrique','sénégal':'Afrique','afrique du sud':'Afrique',
   'égypte':'Afrique','kenya':'Afrique','nigeria':'Afrique','ghana':'Afrique','tanzanie':'Afrique',
   "côte d'ivoire":'Afrique','cameroun':'Afrique','éthiopie':'Afrique','madagascar':'Afrique','rwanda':'Afrique',
+  'mali':'Afrique','burkina faso':'Afrique','bénin':'Afrique','togo':'Afrique','niger':'Afrique',
+  'guinée':'Afrique','congo':'Afrique','rdc':'Afrique','gabon':'Afrique','tchad':'Afrique',
+  'ile maurice':'Afrique','île maurice':'Afrique','maurice':'Afrique','la réunion':'Afrique','réunion':'Afrique',
+  'cap-vert':'Afrique','djibouti':'Afrique','comores':'Afrique','mayotte':'Afrique','seychelles':'Afrique',
   'australie':'Océanie','nouvelle-zélande':'Océanie','nouvelle zélande':'Océanie','fidji':'Océanie',
 };
 const CO = ['Europe','Asie','Amérique du Nord','Amérique du Sud','Afrique','Océanie','Autre'];
@@ -364,7 +368,7 @@ function openPopup(d){
   currentPopup=new mapboxgl.Popup({offset:18,closeButton:true,maxWidth:'300px'})
     .setLngLat([d.lng,d.lat])
     .setHTML(`
-      <div class="popup-type ${d.type}">${getTypeLabel(d.type)} — Promo ${d.promo}</div>
+      <div class="popup-type ${d.type}">${getTypeLabel(d.type)} — Promo ${d.promo}${d.campus?' — Campus '+d.campus:''}</div>
       <div class="popup-student">${d.student}</div>
       ${d.linkedin?`<a class="popup-link" href="${d.linkedin}" target="_blank" rel="noopener">Profil LinkedIn ↗</a>`:''}
       <div class="popup-org">${d.org}</div>
