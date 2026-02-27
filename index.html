@@ -109,7 +109,7 @@
 
   .panel-header h1 em {
     font-style: italic;
-    color: rgb(0, 0, 255);
+    color: var(--accent-stage);
   }
 
   .panel-header .subtitle {
@@ -762,8 +762,24 @@ function init() {
 
   // Panel toggle
   document.getElementById('panelToggle').addEventListener('click', () => {
-    document.getElementById('panel').classList.toggle('collapsed');
+    const panel = document.getElementById('panel');
+    panel.classList.toggle('collapsed');
+    updateMapPadding();
   });
+}
+
+// ══════════════════════════════════════════════
+//  MAP PADDING (offset center for left panel)
+// ══════════════════════════════════════════════
+function updateMapPadding() {
+  const panel = document.getElementById('panel');
+  const isCollapsed = panel.classList.contains('collapsed');
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    map.easeTo({ padding: { top: 0, left: 0, right: 0, bottom: isCollapsed ? 0 : window.innerHeight * 0.55 }, duration: 400 });
+  } else {
+    map.easeTo({ padding: { top: 0, left: isCollapsed ? 0 : 380, right: 0, bottom: 0 }, duration: 400 });
+  }
 }
 
 
@@ -946,6 +962,8 @@ function updateView() {
 map.on('load', () => {
   init();
   loadData();
+  updateMapPadding();
+  window.addEventListener('resize', updateMapPadding);
 });
 </script>
 
