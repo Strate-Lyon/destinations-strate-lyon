@@ -167,6 +167,10 @@
   </div>
   <div class="filters">
     <div class="filter-group">
+      <div class="filter-label">Campus</div>
+      <div class="filter-chips" id="campusFilters"><button class="chip active" data-filter="all">Tous</button></div>
+    </div>
+    <div class="filter-group">
       <div class="filter-label">Type</div>
       <div class="filter-chips" id="typeFilters">
         <button class="chip active" data-filter="all">Tous</button>
@@ -208,13 +212,13 @@ async function loadData() {
   } catch (e) {
     console.error('Erreur chargement:', e);
     destinations = [
-      { student:"Paul C", promo:2025, type:"stage", country:"France", city:"Lyon", lat:45.764, lng:4.8357, org:"Strate", specialization:"Design produit", linkedin:"", website:"" },
-      { student:"Léa Capaloux", promo:2024, type:"stage", country:"Japon", city:"Tokyo", lat:35.6762, lng:139.6503, org:"ULTRA LAB Design", specialization:"Design industriel", linkedin:"", website:"" },
-      { student:"Baptiste Romarion", promo:2026, type:"exchange", country:"Suède", city:"Stockholm", lat:59.3293, lng:18.0686, org:"Konstfack", specialization:"Design interaction", linkedin:"", website:"" },
+      { student:"Paul C", promo:2025, type:"stage", country:"France", city:"Lyon", lat:45.764, lng:4.8357, org:"Strate", specialization:"Design produit", linkedin:"", website:"", campus:"Lyon" },
+      { student:"Léa Capaloux", promo:2024, type:"stage", country:"Japon", city:"Tokyo", lat:35.6762, lng:139.6503, org:"ULTRA LAB Design", specialization:"Design industriel", linkedin:"", website:"", campus:"Lyon" },
+      { student:"Baptiste Romarion", promo:2026, type:"exchange", country:"Suède", city:"Stockholm", lat:59.3293, lng:18.0686, org:"Konstfack", specialization:"Design interaction", linkedin:"", website:"", campus:"Paris" },
     ];
   }
   destinations.forEach((d,i) => d._origIndex = i);
-  buildPromoFilters(); buildSpecFilters(); createMarkers(); updateView();
+  buildCampusFilters(); buildPromoFilters(); buildSpecFilters(); createMarkers(); updateView();
 }
 
 function parseCSV(csv) {
@@ -236,6 +240,7 @@ function parseCSV(csv) {
       specialization: obj.specialization||obj['spécialisation']||obj.specialisation||obj['spécialisations']||obj.specialisations||obj['spécialité']||obj.specialite||'',
       linkedin: obj.linkedin||obj['linkedin url']||'',
       website: obj.website||obj['url org']||obj['site']||obj['site web']||obj['url']||'',
+      campus: obj.campus||'',
     };
   }).filter(d => !isNaN(d.lat) && !isNaN(d.lng));
 }
@@ -271,7 +276,7 @@ const map = new mapboxgl.Map({ container:'map', style:'mapbox://styles/mapbox/da
 map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
 map.on('style.load',()=>{ map.setFog({color:'#0E0E10','high-color':'#161619','horizon-blend':0.04,'space-color':'#0E0E10','star-intensity':0.3}); });
 
-let activeTypes=new Set(), activePromos=new Set(), activeSpecs=new Set(), currentPopup=null;
+let activeTypes=new Set(), activePromos=new Set(), activeSpecs=new Set(), activeCampus=new Set(), currentPopup=null;
 
 function setupMultiFilter(id, set, parse) {
   document.getElementById(id).addEventListener('click', e => {
@@ -289,6 +294,7 @@ function setupMultiFilter(id, set, parse) {
 }
 
 function init(){
+  setupMultiFilter('campusFilters',activeCampus);
   setupMultiFilter('typeFilters',activeTypes);
   setupMultiFilter('promoFilters',activePromos,v=>parseInt(v));
   setupMultiFilter('specFilters',activeSpecs);
@@ -304,6 +310,13 @@ function updateMapPadding(){
   else map.easeTo({padding:{top:0,left:lOpen?440:0,right:rOpen?380:0,bottom:0},duration:400});
 }
 
+function buildCampusFilters(){
+  const c=document.getElementById('campusFilters');
+  c.querySelectorAll('.chip:not([data-filter="all"])').forEach(e=>e.remove());
+  [...new Set(destinations.map(d=>d.campus).filter(s=>s&&s.trim()))].sort((a,b)=>a.localeCompare(b,'fr')).forEach(s=>{
+    const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch);
+  });
+}
 function buildPromoFilters(){
   const c=document.getElementById('promoFilters');
   c.querySelectorAll('.chip:not([data-filter="all"])').forEach(e=>e.remove());
@@ -364,7 +377,7 @@ function openPopup(d){
 
 function updateView(){
   const filtered=destinations.filter(d=>{
-    return (activeTypes.size===0||activeTypes.has(d.type))&&(activePromos.size===0||activePromos.has(d.promo))&&(activeSpecs.size===0||activeSpecs.has(d.specialization));
+    return (activeCampus.size===0||activeCampus.has(d.campus))&&(activeTypes.size===0||activeTypes.has(d.type))&&(activePromos.size===0||activePromos.has(d.promo))&&(activeSpecs.size===0||activeSpecs.has(d.specialization));
   });
   const src=map.getSource('destinations'); if(src)src.setData(toGJ(filtered));
 
