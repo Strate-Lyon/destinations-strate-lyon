@@ -439,33 +439,15 @@
     transform: scale(0);
   }
 
-  /* ── Google Sheet Banner ────────────────── */
-  .sheet-banner {
-    padding: 16px 28px 20px;
+  /* ── School Banner ─────────────────────── */
+  .school-banner {
+    padding: 14px 28px 18px;
     border-top: 1px solid var(--border);
-  }
-
-  .sheet-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    text-decoration: none;
-    color: var(--text-secondary);
-    font-size: 12px;
-    transition: all 0.2s;
-  }
-
-  .sheet-link:hover {
-    border-color: var(--text-muted);
-    color: var(--text-primary);
-  }
-
-  .sheet-link svg {
-    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    font-weight: 400;
+    text-align: center;
   }
 
   /* ── Responsive ─────────────────────────── */
@@ -571,11 +553,8 @@
 
   <div class="destination-list" id="destinationList"></div>
 
-  <div class="sheet-banner">
-    <a href="#" class="sheet-link" title="Modifier les données dans Google Sheet">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      Modifier les données (Google Sheet)
-    </a>
+  <div class="school-banner">
+    Strate, École de Design — Lyon
   </div>
 </div>
 
