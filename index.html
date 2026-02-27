@@ -17,9 +17,10 @@
     --text-primary: #F0EDE8;
     --text-secondary: #8A8A95;
     --text-muted: #5A5A65;
-    --accent-stage: #E8A85F;
+    --accent-stage: #5EBD8C;
     --accent-exchange: #6FA3EF;
     --accent-alumni: #A78BFA;
+    --accent-title: #E8A85F;
     --font-display: 'Instrument Serif', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
     --panel-left-w: 420px;
@@ -63,7 +64,7 @@
   /* ── Header ────────────────────────────── */
   .panel-header { padding: 28px 24px 0; }
   .panel-header h1 { font-family: var(--font-display); font-size: 26px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; white-space: nowrap; }
-  .panel-header h1 em { font-style: italic; color: var(--accent-stage); }
+  .panel-header h1 em { font-style: italic; color: var(--accent-title); }
   .panel-header .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 300; }
 
   /* ── Stats ──────────────────────────────── */
@@ -127,51 +128,69 @@
   .popup-location { font-size: 13px; color: var(--text-secondary); font-weight: 300; }
   .popup-meta { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--border); }
 
-  /* ── Search Bar ──────────────────────────── */
-  .search-wrap { padding: 14px 24px 0; position: relative; }
+  /* ── Search Bar (floating top center) ────── */
+  .search-wrap {
+    position: absolute;
+    top: 20px;
+    left: calc(var(--panel-left-w) + 70px);
+    right: calc(var(--panel-right-w) + 70px);
+    z-index: 12;
+    height: 44px;
+  }
   .search-input {
-    width: 100%; padding: 9px 14px 9px 36px; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--bg-card);
-    color: var(--text-primary); font-family: var(--font-body); font-size: 13px;
-    outline: none; transition: border-color 0.2s;
+    width: 100%; height: 44px;
+    padding: 0 44px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    backdrop-filter: blur(30px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
   .search-input::placeholder { color: var(--text-muted); }
   .search-input:focus { border-color: var(--text-secondary); }
   .search-icon {
-    position: absolute; left: 34px; top: 50%; transform: translateY(-50%);
+    position: absolute; left: 15px; top: 0; height: 44px;
+    display: flex; align-items: center;
     color: var(--text-muted); pointer-events: none;
   }
   .search-clear {
-    position: absolute; right: 34px; top: 50%; transform: translateY(-50%);
-    background: none; border: none; color: var(--text-muted); font-size: 16px;
-    cursor: pointer; display: none; padding: 2px 4px; line-height: 1;
+    position: absolute; right: 10px; top: 0; height: 44px;
+    display: none; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--text-muted);
+    font-size: 18px; cursor: pointer; padding: 0 6px; line-height: 1;
   }
   .search-clear:hover { color: var(--text-primary); }
   .search-results {
-    position: absolute; left: 24px; right: 24px; top: 100%; margin-top: 4px;
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
-    max-height: 260px; overflow-y: auto; z-index: 20; display: none;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    position: absolute; left: 0; right: 0; top: 100%; margin-top: 6px;
+    background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px;
+    max-height: 300px; overflow-y: auto; z-index: 20; display: none;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
     scrollbar-width: thin; scrollbar-color: var(--border) transparent;
   }
   .search-results.visible { display: block; }
   .search-result-item {
-    padding: 10px 14px; cursor: pointer; transition: background 0.12s;
+    padding: 10px 16px; cursor: pointer; transition: background 0.12s;
     border-bottom: 1px solid var(--border);
   }
   .search-result-item:last-child { border-bottom: none; }
   .search-result-item:hover { background: var(--bg-hover); }
   .search-result-city { font-size: 13px; font-weight: 500; }
   .search-result-detail { font-size: 11px; color: var(--text-secondary); font-weight: 300; margin-top: 1px; }
-  .search-result-match { color: var(--accent-stage); font-weight: 500; }
-  .search-no-result { padding: 12px 14px; font-size: 12px; color: var(--text-muted); }
+  .search-result-match { color: var(--accent-title); font-weight: 500; }
+  .search-no-result { padding: 12px 16px; font-size: 12px; color: var(--text-muted); }
 
   /* ── Responsive ─────────────────────────── */
-  @media (max-width: 900px) { .panel-right, #toggleRight { display: none; } }
+  @media (max-width: 900px) { .panel-right, #toggleRight { display: none; } .search-wrap { right: 70px; } }
   @media (max-width: 768px) {
     .panel-left { top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 55vh; border-radius: 20px 20px 0 0; }
     .panel-left.collapsed { transform: translateY(calc(100% - 60px)); }
     #toggleLeft { display: none; }
+    .search-wrap { left: 20px; right: 20px; top: 16px; }
   }
 
   /* ── Animations ────────────────────────── */
@@ -188,17 +207,19 @@
 
 <div id="map"></div>
 
+<!-- FLOATING SEARCH BAR -->
+<div class="search-wrap" id="searchWrap">
+  <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un nom, une ville, une entreprise…" autocomplete="off">
+  <button class="search-clear" id="searchClear">×</button>
+  <div class="search-results" id="searchResults"></div>
+</div>
+
 <!-- LEFT PANEL: Stats & Filters -->
 <div class="panel-base panel-left" id="panelLeft">
   <div class="panel-header">
     <h1>Cartographie des <em>Stratos</em></h1>
     <p class="subtitle">Stages, échanges académiques & alumni</p>
-  </div>
-  <div class="search-wrap">
-    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un nom, une ville, une entreprise…" autocomplete="off">
-    <button class="search-clear" id="searchClear">×</button>
-    <div class="search-results" id="searchResults"></div>
   </div>
   <div class="stats-row">
     <div class="stat-card stages"><div class="number" id="countStages">0</div><div class="label">Stages</div></div>
@@ -362,7 +383,7 @@ function initSearch() {
 
   input.addEventListener('input', () => {
     const q = input.value.trim().toLowerCase();
-    clearBtn.style.display = q ? 'block' : 'none';
+    clearBtn.style.display = q ? 'flex' : 'none';
     if (q.length < 2) { resultsEl.classList.remove('visible'); return; }
     const matches = destinations.filter(d => {
       return [d.student, d.city, d.country, d.org, d.specialization, d.campus, String(d.promo)]
@@ -384,7 +405,7 @@ function initSearch() {
           openPopup(d);
           resultsEl.classList.remove('visible');
           input.value = d.student;
-          clearBtn.style.display = 'block';
+          clearBtn.style.display = 'flex';
         });
         resultsEl.appendChild(item);
       });
@@ -441,7 +462,7 @@ function buildSpecFilters(){
   });
 }
 
-const TC={stage:'#E8A85F',exchange:'#6FA3EF',alumni:'#A78BFA'};
+const TC={stage:'#5EBD8C',exchange:'#6FA3EF',alumni:'#A78BFA'};
 function toGJ(data){return{type:'FeatureCollection',features:data.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:[d.lng,d.lat]},properties:{type:d.type,_origIndex:d._origIndex}}))};}
 
 function createMarkers(){
