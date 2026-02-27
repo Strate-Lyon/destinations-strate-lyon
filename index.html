@@ -1006,7 +1006,8 @@ function updateView() {
   // Update markers visibility
   markers.forEach(m => {
     const visible = filtered.includes(m.data);
-    m.el.classList.toggle('hidden', !visible);
+    const wrapper = m.marker.getElement();
+    wrapper.style.display = visible ? '' : 'none';
   });
 
   // Update stats
