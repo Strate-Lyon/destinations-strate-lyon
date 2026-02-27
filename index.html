@@ -311,6 +311,13 @@
     text-overflow: ellipsis;
   }
 
+  .dest-student {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
   .dest-promo {
     font-size: 11px;
     color: var(--text-muted);
@@ -346,20 +353,35 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     font-weight: 500;
-    margin-bottom: 6px;
+    margin-bottom: 12px;
   }
 
   .popup-type.stage { color: var(--accent-stage); }
   .popup-type.exchange { color: var(--accent-exchange); }
   .popup-type.alumni { color: var(--accent-alumni); }
 
-  .popup-city {
+  .popup-promo-year {
     font-family: var(--font-display);
-    font-size: 22px;
-    margin-bottom: 2px;
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: 6px;
   }
 
-  .popup-country {
+  .popup-org {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .popup-specialization {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+
+  .popup-location {
     font-size: 13px;
     color: var(--text-secondary);
     font-weight: 300;
@@ -577,9 +599,9 @@ async function loadData() {
     console.error('Erreur de chargement du Google Sheet :', err);
     // Données de démonstration en cas d'erreur
     destinations = [
-      { city: "Lyon", country: "France", lat: 45.764, lng: 4.8357, type: "stage", promo: 2025, student: "Paul C", org: "Strate" },
-      { city: "Tokyo", country: "Japon", lat: 35.6762, lng: 139.6503, type: "stage", promo: 2024, student: "Léa Capaloux", org: "ULTRA LAB Design" },
-      { city: "Stockholm", country: "Suède", lat: 59.3293, lng: 18.0686, type: "exchange", promo: 2026, student: "Baptiste Romarion", org: "Konstfack" },
+      { student: "Paul C", promo: 2025, type: "stage", country: "France", city: "Lyon", org: "Strate", specialization: "Design produit", lat: 45.764, lng: 4.8357 },
+      { student: "Léa Capaloux", promo: 2024, type: "stage", country: "Japon", city: "Tokyo", org: "ULTRA LAB Design", specialization: "Design industriel", lat: 35.6762, lng: 139.6503 },
+      { student: "Baptiste Romarion", promo: 2026, type: "exchange", country: "Suède", city: "Stockholm", org: "Konstfack", specialization: "Design interaction", lat: 59.3293, lng: 18.0686 },
     ];
     console.info('⚡ Données de démonstration chargées. Vérifiez votre SHEET_URL.');
   }
@@ -601,21 +623,22 @@ function parseCSV(csv) {
     const obj = {};
     headers.forEach((h, i) => obj[h] = values[i] || '');
     // Détection du type
-    const rawType = (obj.type || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const rawType = (obj.type || obj.statut || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     let type = 'stage';
     if (rawType.includes('change')) type = 'exchange';
     else if (rawType.includes('alumni')) type = 'alumni';
     else if (rawType.includes('stage')) type = 'stage';
 
     return {
-      city: obj.city || obj.ville || '',
+      student: obj.student || obj.etudiant || obj['étudiant'] || obj['nom'] || '',
+      promo: parseInt(obj.promo || obj.promotion || obj['année'] || obj.annee),
+      type,
       country: obj.country || obj.pays || '',
+      city: obj.city || obj.ville || '',
+      org: obj.org || obj.organisation || obj.entreprise || obj['école'] || obj.ecole || '',
+      specialization: obj.specialization || obj['spécialisation'] || obj.specialisation || obj['spécialisations'] || obj.specialisations || obj['spécialité'] || obj.specialite || '',
       lat: parseFloat(obj.lat || obj.latitude),
       lng: parseFloat(obj.lng || obj.longitude),
-      type,
-      promo: parseInt(obj.promo || obj.promotion),
-      student: obj.student || obj.etudiant || obj.élève || obj['étudiant'] || '',
-      org: obj.org || obj.organisation || obj.entreprise || obj['école'] || obj.ecole || '',
     };
   }).filter(d => !isNaN(d.lat) && !isNaN(d.lng));
 }
@@ -831,20 +854,14 @@ function openPopup(d) {
     .setLngLat([d.lng, d.lat])
     .setHTML(`
       <div class="popup-type ${d.type}">${getTypeLabel(d.type)}</div>
-      <div class="popup-city">${d.city}</div>
-      <div class="popup-country">${d.country}</div>
+      <div class="popup-promo-year">${d.promo}</div>
+      <div class="popup-org">${d.org}</div>
+      ${d.specialization ? `<div class="popup-specialization">${d.specialization}</div>` : ''}
+      <div class="popup-location">${d.city}, ${d.country}</div>
       <div class="popup-meta">
-        <div class="popup-meta-row">
-          <span class="popup-meta-label">${getOrgLabel(d.type)}</span>
-          <span class="popup-meta-value">${d.org}</span>
-        </div>
         <div class="popup-meta-row">
           <span class="popup-meta-label">Étudiant·e</span>
           <span class="popup-meta-value">${d.student}</span>
-        </div>
-        <div class="popup-meta-row">
-          <span class="popup-meta-label">Promotion</span>
-          <span class="popup-meta-value">${d.promo}</span>
         </div>
       </div>
     `)
@@ -920,8 +937,9 @@ function updateView() {
       item.innerHTML = `
         <div class="dest-dot ${d.type}"></div>
         <div class="dest-info">
-          <div class="dest-city">${d.city}</div>
-          <div class="dest-detail">${d.org} — ${d.student}</div>
+          <div class="dest-city">${d.city}, ${d.country}</div>
+          <div class="dest-detail">${d.org}${d.specialization ? ' · ' + d.specialization : ''}</div>
+          <div class="dest-student">${d.student}</div>
         </div>
         <div class="dest-promo">${d.promo}</div>
       `;
