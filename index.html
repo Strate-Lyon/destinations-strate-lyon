@@ -540,7 +540,7 @@
 
 <div class="panel" id="panel">
   <div class="panel-header">
-    <h1>Nos <em>destinations</em><br>à travers le monde</h1>
+    <h1>Cartographie<br>des <em>Stratos</em></h1>
     <p class="subtitle">Stages, échanges académiques & alumni</p>
   </div>
 
@@ -625,6 +625,8 @@ async function loadData() {
     console.info('⚡ Données de démonstration chargées. Vérifiez votre SHEET_URL.');
   }
   // Générer les filtres promo APRÈS le chargement des données
+  // Assign original indices for click lookups
+  destinations.forEach((d, i) => d._origIndex = i);
   buildPromoFilters();
   buildSpecFilters();
   createMarkers();
@@ -773,7 +775,6 @@ map.on('style.load', () => {
 let activeTypes = new Set(); // empty = all
 let activePromos = new Set(); // empty = all
 let activeSpecs = new Set(); // empty = all
-let markers = [];
 let currentPopup = null;
 
 
@@ -925,28 +926,121 @@ function buildSpecFilters() {
 
 
 // ══════════════════════════════════════════════
-//  MARKERS
+//  CLUSTERED MARKERS (Mapbox native clustering)
 // ══════════════════════════════════════════════
+const TYPE_COLORS = {
+  stage: '#E8A85F',
+  exchange: '#6FA3EF',
+  alumni: '#A78BFA',
+};
+
+function toGeoJSON(data) {
+  return {
+    type: 'FeatureCollection',
+    features: data.map((d) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [d.lng, d.lat] },
+      properties: { type: d.type, _origIndex: d._origIndex },
+    })),
+  };
+}
+
 function createMarkers() {
-  // Supprimer les anciens marqueurs
-  markers.forEach(m => m.marker.remove());
-  markers = [];
+  // Add source with clustering
+  if (map.getSource('destinations')) {
+    map.removeLayer('cluster-circles');
+    map.removeLayer('cluster-count');
+    map.removeLayer('unclustered-stage');
+    map.removeLayer('unclustered-exchange');
+    map.removeLayer('unclustered-alumni');
+    map.removeSource('destinations');
+  }
 
-  destinations.forEach(d => {
-    const el = document.createElement('div');
-    el.className = `marker ${d.type}`;
-
-    const marker = new mapboxgl.Marker({ element: el })
-      .setLngLat([d.lng, d.lat])
-      .addTo(map);
-
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openPopup(d);
-    });
-
-    markers.push({ marker, el, data: d });
+  map.addSource('destinations', {
+    type: 'geojson',
+    data: toGeoJSON(destinations),
+    cluster: true,
+    clusterMaxZoom: 12,
+    clusterRadius: 45,
   });
+
+  // Cluster circles
+  map.addLayer({
+    id: 'cluster-circles',
+    type: 'circle',
+    source: 'destinations',
+    filter: ['has', 'point_count'],
+    paint: {
+      'circle-color': '#F0EDE8',
+      'circle-opacity': 0.9,
+      'circle-radius': ['step', ['get', 'point_count'], 18, 5, 24, 15, 32],
+      'circle-stroke-width': 2,
+      'circle-stroke-color': 'rgba(240,237,232,0.2)',
+    },
+  });
+
+  // Cluster count label
+  map.addLayer({
+    id: 'cluster-count',
+    type: 'symbol',
+    source: 'destinations',
+    filter: ['has', 'point_count'],
+    layout: {
+      'text-field': '{point_count_abbreviated}',
+      'text-size': 13,
+      'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
+    },
+    paint: {
+      'text-color': '#0E0E10',
+    },
+  });
+
+  // Individual points — one layer per type for color
+  ['stage', 'exchange', 'alumni'].forEach(type => {
+    map.addLayer({
+      id: `unclustered-${type}`,
+      type: 'circle',
+      source: 'destinations',
+      filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'type'], type]],
+      paint: {
+        'circle-color': TYPE_COLORS[type],
+        'circle-radius': 7,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#0E0E10',
+        'circle-opacity': 0.95,
+      },
+    });
+  });
+
+  // Click on cluster → zoom in
+  map.on('click', 'cluster-circles', (e) => {
+    const features = map.queryRenderedFeatures(e.point, { layers: ['cluster-circles'] });
+    const clusterId = features[0].properties.cluster_id;
+    map.getSource('destinations').getClusterExpansionZoom(clusterId, (err, zoom) => {
+      if (err) return;
+      map.flyTo({ center: features[0].geometry.coordinates, zoom: zoom + 0.5, duration: 800 });
+    });
+  });
+
+  // Click on individual point → popup
+  ['unclustered-stage', 'unclustered-exchange', 'unclustered-alumni'].forEach(layerId => {
+    map.on('click', layerId, (e) => {
+      const props = e.features[0].properties;
+      const d = destinations[props._origIndex];
+      if (d) openPopup(d);
+    });
+  });
+
+  // Cursor changes
+  ['cluster-circles', 'unclustered-stage', 'unclustered-exchange', 'unclustered-alumni'].forEach(id => {
+    map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; });
+  });
+}
+
+function updateMapSource(filtered) {
+  const source = map.getSource('destinations');
+  if (source) source.setData(toGeoJSON(filtered));
 }
 
 function getTypeLabel(type) {
@@ -1003,12 +1097,8 @@ function updateView() {
     return matchType && matchPromo && matchSpec;
   });
 
-  // Update markers visibility
-  markers.forEach(m => {
-    const visible = filtered.includes(m.data);
-    const wrapper = m.marker.getElement();
-    wrapper.style.display = visible ? '' : 'none';
-  });
+  // Update map markers (feed filtered data to cluster source)
+  updateMapSource(filtered);
 
   // Update stats
   const stages = filtered.filter(d => d.type === 'stage');
