@@ -128,6 +128,20 @@
   .popup-location { font-size: 13px; color: var(--text-secondary); font-weight: 300; }
   .popup-meta { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--border); }
 
+  /* ── Cluster Popup Navigation ──────────── */
+  .popup-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 14px; margin-top: 6px; border-top: 1px solid var(--border);
+  }
+  .popup-nav-btn {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text-secondary); width: 32px; height: 32px; font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .popup-nav-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .popup-nav-counter { font-size: 11px; color: var(--text-muted); letter-spacing: 0.03em; }
+
   /* ── Search Bar (floating top center) ────── */
   .search-wrap {
     position: absolute;
@@ -343,7 +357,7 @@ const CO = ['Europe','Asie','Amérique du Nord','Amérique du Sud','Afrique','Oc
 function getContinent(c){ return CC[(c||'').toLowerCase().trim()]||'Autre'; }
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoic3RyYXRlIiwiYSI6ImNtbTR1b2I0NDBmcmkycXFyMjhobDA2aWwifQ.uB8YsiprpJJtCxiwB99BCQ';
-const map = new mapboxgl.Map({ container:'map', style:'mapbox://styles/mapbox/dark-v11', center:[10,30], zoom:1.8, minZoom:1.2, maxZoom:12, projection:'globe', antialias:true });
+const map = new mapboxgl.Map({ container:'map', style:'mapbox://styles/mapbox/dark-v11', center:[10,30], zoom:1.8, minZoom:1.2, maxZoom:16, projection:'globe', antialias:true });
 map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
 map.on('style.load',()=>{ map.setFog({color:'#0E0E10','high-color':'#161619','horizon-blend':0.04,'space-color':'#0E0E10','star-intensity':0.3}); });
 
@@ -469,7 +483,7 @@ function toGJ(data){return{type:'FeatureCollection',features:data.map(d=>({type:
 function createMarkers(){
   ['cluster-circles','cluster-count','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
   if(map.getSource('destinations'))map.removeSource('destinations');
-  map.addSource('destinations',{type:'geojson',data:toGJ(destinations),cluster:true,clusterMaxZoom:12,clusterRadius:45});
+  map.addSource('destinations',{type:'geojson',data:toGJ(destinations),cluster:true,clusterMaxZoom:14,clusterRadius:40});
   map.addLayer({id:'cluster-circles',type:'circle',source:'destinations',filter:['has','point_count'],paint:{'circle-color':'#F0EDE8','circle-opacity':0.9,'circle-radius':['step',['get','point_count'],18,5,24,15,32],'circle-stroke-width':2,'circle-stroke-color':'rgba(240,237,232,0.2)'}});
   map.addLayer({id:'cluster-count',type:'symbol',source:'destinations',filter:['has','point_count'],layout:{'text-field':'{point_count_abbreviated}','text-size':13,'text-font':['DIN Pro Medium','Arial Unicode MS Regular']},paint:{'text-color':'#0E0E10'}});
   ['stage','exchange','alumni'].forEach(t=>{
@@ -477,7 +491,26 @@ function createMarkers(){
   });
   map.on('click','cluster-circles',e=>{
     const f=map.queryRenderedFeatures(e.point,{layers:['cluster-circles']});
-    map.getSource('destinations').getClusterExpansionZoom(f[0].properties.cluster_id,(err,z)=>{if(!err)map.flyTo({center:f[0].geometry.coordinates,zoom:z+0.5,duration:800});});
+    const clusterId=f[0].properties.cluster_id;
+    const coords=f[0].geometry.coordinates;
+    const src=map.getSource('destinations');
+
+    // First try to zoom in if not at max cluster zoom
+    src.getClusterExpansionZoom(clusterId,(err,expansionZoom)=>{
+      if(err) return;
+      // If zooming would actually separate points, zoom
+      if(expansionZoom <= 14 && expansionZoom > map.getZoom() + 0.5) {
+        map.flyTo({center:coords,zoom:expansionZoom+0.5,duration:800});
+        return;
+      }
+      // Otherwise show paginated popup with all cluster leaves
+      src.getClusterLeaves(clusterId,100,0,(err2,leaves)=>{
+        if(err2||!leaves||leaves.length===0) return;
+        const items=leaves.map(l=>destinations[l.properties._origIndex]).filter(Boolean);
+        if(items.length===0) return;
+        openClusterPopup(items,coords);
+      });
+    });
   });
   ['unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{
     map.on('click',id,e=>{const d=destinations[e.features[0].properties._origIndex];if(d)openPopup(d);});
@@ -494,16 +527,57 @@ function openPopup(d){
   if(currentPopup)currentPopup.remove();
   currentPopup=new mapboxgl.Popup({offset:18,closeButton:true,maxWidth:'300px'})
     .setLngLat([d.lng,d.lat])
-    .setHTML(`
-      <div class="popup-type ${d.type}">${getTypeLabel(d.type)} — Promo ${d.promo}${d.campus?' — Strate '+d.campus:''}</div>
-      <div class="popup-student">${d.student}</div>
-      ${d.linkedin?`<a class="popup-link" href="${d.linkedin}" target="_blank" rel="noopener">Profil LinkedIn ↗</a>`:''}
-      <div class="popup-org">${d.org}</div>
-      ${d.specialization?`<div class="popup-specialization">${d.specialization}</div>`:''}
-      ${d.website?`<a class="popup-link" href="${d.website}" target="_blank" rel="noopener">Site web ↗</a>`:''}
-      <div class="popup-meta"><div class="popup-location">${d.city}, ${d.country}</div></div>
-    `).addTo(map);
+    .setHTML(popupHTML(d))
+    .addTo(map);
   map.flyTo({center:[d.lng,d.lat],zoom:Math.max(map.getZoom(),4),duration:1200,essential:true});
+}
+
+function popupHTML(d) {
+  return `
+    <div class="popup-type ${d.type}">${getTypeLabel(d.type)} — Promo ${d.promo}${d.campus?' — Strate '+d.campus:''}</div>
+    <div class="popup-student">${d.student}</div>
+    ${d.linkedin?`<a class="popup-link" href="${d.linkedin}" target="_blank" rel="noopener">Profil LinkedIn ↗</a>`:''}
+    <div class="popup-org">${d.org}</div>
+    ${d.specialization?`<div class="popup-specialization">${d.specialization}</div>`:''}
+    ${d.website?`<a class="popup-link" href="${d.website}" target="_blank" rel="noopener">Site web ↗</a>`:''}
+    <div class="popup-meta"><div class="popup-location">${d.city}, ${d.country}</div></div>
+  `;
+}
+
+function openClusterPopup(items, coords) {
+  if(currentPopup) currentPopup.remove();
+  let idx = 0;
+
+  function render() {
+    const d = items[idx];
+    const nav = items.length > 1 ? `
+      <div class="popup-nav">
+        <button class="popup-nav-btn" id="popupPrev">‹</button>
+        <span class="popup-nav-counter">${idx+1} / ${items.length}</span>
+        <button class="popup-nav-btn" id="popupNext">›</button>
+      </div>
+    ` : '';
+    return `<div id="clusterPopupContent">${popupHTML(d)}${nav}</div>`;
+  }
+
+  currentPopup = new mapboxgl.Popup({offset:18, closeButton:true, maxWidth:'300px'})
+    .setLngLat(coords)
+    .setHTML(render())
+    .addTo(map);
+
+  function attachNav() {
+    const prev = document.getElementById('popupPrev');
+    const next = document.getElementById('popupNext');
+    if(prev) prev.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx - 1 + items.length) % items.length; update(); });
+    if(next) next.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx + 1) % items.length; update(); });
+  }
+
+  function update() {
+    const el = document.getElementById('clusterPopupContent');
+    if(el) { el.innerHTML = popupHTML(items[idx]) + (items.length > 1 ? `<div class="popup-nav"><button class="popup-nav-btn" id="popupPrev">‹</button><span class="popup-nav-counter">${idx+1} / ${items.length}</span><button class="popup-nav-btn" id="popupNext">›</button></div>` : ''); attachNav(); }
+  }
+
+  attachNav();
 }
 
 function updateView(){
