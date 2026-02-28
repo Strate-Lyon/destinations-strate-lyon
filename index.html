@@ -481,43 +481,19 @@ const TC={stage:'#5EBD8C',exchange:'#6FA3EF',alumni:'#A78BFA'};
 function toGJ(data){return{type:'FeatureCollection',features:data.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:[d.lng,d.lat]},properties:{type:d.type,_origIndex:d._origIndex}}))};}
 
 function createMarkers(){
-  ['cluster-circles','cluster-count','glow-stage','glow-exchange','glow-alumni','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
+  ['glow-stage','glow-exchange','glow-alumni','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
   if(map.getSource('destinations'))map.removeSource('destinations');
-  map.addSource('destinations',{type:'geojson',data:toGJ(destinations),cluster:true,clusterMaxZoom:16,clusterRadius:35});
-  map.addLayer({id:'cluster-circles',type:'circle',source:'destinations',filter:['has','point_count'],paint:{'circle-color':'#F0EDE8','circle-opacity':0.9,'circle-radius':['step',['get','point_count'],18,5,24,15,32],'circle-stroke-width':2,'circle-stroke-color':'rgba(240,237,232,0.2)'}});
-  map.addLayer({id:'cluster-count',type:'symbol',source:'destinations',filter:['has','point_count'],layout:{'text-field':'{point_count_abbreviated}','text-size':13,'text-font':['DIN Pro Medium','Arial Unicode MS Regular']},paint:{'text-color':'#0E0E10'}});
+  map.addSource('destinations',{type:'geojson',data:toGJ(destinations)});
   ['stage','exchange','alumni'].forEach(t=>{
     // Glow layer
-    map.addLayer({id:`glow-${t}`,type:'circle',source:'destinations',filter:['all',['!',['has','point_count']],['==',['get','type'],t]],paint:{'circle-color':TC[t],'circle-radius':14,'circle-blur':1,'circle-opacity':0.3}});
+    map.addLayer({id:`glow-${t}`,type:'circle',source:'destinations',filter:['==',['get','type'],t],paint:{'circle-color':TC[t],'circle-radius':14,'circle-blur':1,'circle-opacity':0.3}});
     // Main point
-    map.addLayer({id:`unclustered-${t}`,type:'circle',source:'destinations',filter:['all',['!',['has','point_count']],['==',['get','type'],t]],paint:{'circle-color':TC[t],'circle-radius':6,'circle-stroke-width':0,'circle-opacity':0.95}});
-  });
-  map.on('click','cluster-circles',e=>{
-    const f=map.queryRenderedFeatures(e.point,{layers:['cluster-circles']});
-    const clusterId=f[0].properties.cluster_id;
-    const coords=f[0].geometry.coordinates;
-    const src=map.getSource('destinations');
-
-    src.getClusterExpansionZoom(clusterId,(err,expansionZoom)=>{
-      if(err) return;
-      // If we can still zoom in, always zoom
-      if(expansionZoom > map.getZoom()) {
-        map.flyTo({center:coords, zoom: Math.min(expansionZoom + 0.5, 17), duration:800});
-        return;
-      }
-      // Already at max zoom for this cluster — show paginated popup
-      src.getClusterLeaves(clusterId,100,0,(err2,leaves)=>{
-        if(err2||!leaves||leaves.length===0) return;
-        const items=leaves.map(l=>destinations[l.properties._origIndex]).filter(Boolean);
-        if(items.length===0) return;
-        openClusterPopup(items,coords);
-      });
-    });
+    map.addLayer({id:`unclustered-${t}`,type:'circle',source:'destinations',filter:['==',['get','type'],t],paint:{'circle-color':TC[t],'circle-radius':6,'circle-stroke-width':0,'circle-opacity':0.95}});
   });
   ['unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{
     map.on('click',id,e=>{const d=destinations[e.features[0].properties._origIndex];if(d)openPopup(d);});
   });
-  ['cluster-circles','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{
+  ['unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{
     map.on('mouseenter',id,()=>{map.getCanvas().style.cursor='pointer';});
     map.on('mouseleave',id,()=>{map.getCanvas().style.cursor='';});
   });
