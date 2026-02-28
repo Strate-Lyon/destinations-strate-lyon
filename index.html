@@ -357,7 +357,7 @@ const CO = ['Europe','Asie','Amérique du Nord','Amérique du Sud','Afrique','Oc
 function getContinent(c){ return CC[(c||'').toLowerCase().trim()]||'Autre'; }
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoic3RyYXRlIiwiYSI6ImNtbTR1b2I0NDBmcmkycXFyMjhobDA2aWwifQ.uB8YsiprpJJtCxiwB99BCQ';
-const map = new mapboxgl.Map({ container:'map', style:'mapbox://styles/mapbox/dark-v11', center:[10,30], zoom:1.8, minZoom:1.2, maxZoom:16, projection:'globe', antialias:true });
+const map = new mapboxgl.Map({ container:'map', style:'mapbox://styles/mapbox/dark-v11', center:[10,30], zoom:1.8, minZoom:1.2, maxZoom:18, projection:'globe', antialias:true });
 map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
 map.on('style.load',()=>{ map.setFog({color:'#0E0E10','high-color':'#161619','horizon-blend':0.04,'space-color':'#0E0E10','star-intensity':0.3}); });
 
@@ -481,13 +481,16 @@ const TC={stage:'#5EBD8C',exchange:'#6FA3EF',alumni:'#A78BFA'};
 function toGJ(data){return{type:'FeatureCollection',features:data.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:[d.lng,d.lat]},properties:{type:d.type,_origIndex:d._origIndex}}))};}
 
 function createMarkers(){
-  ['cluster-circles','cluster-count','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
+  ['cluster-circles','cluster-count','glow-stage','glow-exchange','glow-alumni','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
   if(map.getSource('destinations'))map.removeSource('destinations');
-  map.addSource('destinations',{type:'geojson',data:toGJ(destinations),cluster:true,clusterMaxZoom:14,clusterRadius:40});
+  map.addSource('destinations',{type:'geojson',data:toGJ(destinations),cluster:true,clusterMaxZoom:16,clusterRadius:35});
   map.addLayer({id:'cluster-circles',type:'circle',source:'destinations',filter:['has','point_count'],paint:{'circle-color':'#F0EDE8','circle-opacity':0.9,'circle-radius':['step',['get','point_count'],18,5,24,15,32],'circle-stroke-width':2,'circle-stroke-color':'rgba(240,237,232,0.2)'}});
   map.addLayer({id:'cluster-count',type:'symbol',source:'destinations',filter:['has','point_count'],layout:{'text-field':'{point_count_abbreviated}','text-size':13,'text-font':['DIN Pro Medium','Arial Unicode MS Regular']},paint:{'text-color':'#0E0E10'}});
   ['stage','exchange','alumni'].forEach(t=>{
-    map.addLayer({id:`unclustered-${t}`,type:'circle',source:'destinations',filter:['all',['!',['has','point_count']],['==',['get','type'],t]],paint:{'circle-color':TC[t],'circle-radius':7,'circle-stroke-width':2,'circle-stroke-color':'#0E0E10','circle-opacity':0.95}});
+    // Glow layer
+    map.addLayer({id:`glow-${t}`,type:'circle',source:'destinations',filter:['all',['!',['has','point_count']],['==',['get','type'],t]],paint:{'circle-color':TC[t],'circle-radius':14,'circle-blur':1,'circle-opacity':0.3}});
+    // Main point
+    map.addLayer({id:`unclustered-${t}`,type:'circle',source:'destinations',filter:['all',['!',['has','point_count']],['==',['get','type'],t]],paint:{'circle-color':TC[t],'circle-radius':6,'circle-stroke-width':0,'circle-opacity':0.95}});
   });
   map.on('click','cluster-circles',e=>{
     const f=map.queryRenderedFeatures(e.point,{layers:['cluster-circles']});
@@ -499,7 +502,7 @@ function createMarkers(){
       if(err) return;
       // If we can still zoom in, always zoom
       if(expansionZoom > map.getZoom()) {
-        map.flyTo({center:coords, zoom: Math.min(expansionZoom + 0.5, 16), duration:800});
+        map.flyTo({center:coords, zoom: Math.min(expansionZoom + 0.5, 17), duration:800});
         return;
       }
       // Already at max zoom for this cluster — show paginated popup
