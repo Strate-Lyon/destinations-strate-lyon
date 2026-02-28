@@ -495,15 +495,14 @@ function createMarkers(){
     const coords=f[0].geometry.coordinates;
     const src=map.getSource('destinations');
 
-    // First try to zoom in if not at max cluster zoom
     src.getClusterExpansionZoom(clusterId,(err,expansionZoom)=>{
       if(err) return;
-      // If zooming would actually separate points, zoom
-      if(expansionZoom <= 14 && expansionZoom > map.getZoom() + 0.5) {
-        map.flyTo({center:coords,zoom:expansionZoom+0.5,duration:800});
+      // If we can still zoom in, always zoom
+      if(expansionZoom > map.getZoom()) {
+        map.flyTo({center:coords, zoom: Math.min(expansionZoom + 0.5, 16), duration:800});
         return;
       }
-      // Otherwise show paginated popup with all cluster leaves
+      // Already at max zoom for this cluster — show paginated popup
       src.getClusterLeaves(clusterId,100,0,(err2,leaves)=>{
         if(err2||!leaves||leaves.length===0) return;
         const items=leaves.map(l=>destinations[l.properties._origIndex]).filter(Boolean);
