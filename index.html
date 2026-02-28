@@ -49,6 +49,7 @@
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s, border-color 0.3s;
   }
   body.light .panel-base { box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+  body.light .voyager-btn { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
 
   .panel-left { left: 20px; width: var(--panel-left-w); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .panel-left.collapsed { transform: translateX(calc(-100% - 30px)); }
@@ -181,8 +182,26 @@
   .popup-nav-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
   .popup-nav-counter { font-size: 11px; color: var(--text-muted); }
 
-  /* ── Search Bar ────────────────────────── */
-  .search-wrap { position: absolute; top: 20px; left: 50%; transform: translateX(calc(-50% + (var(--panel-left-w) - var(--panel-right-w)) / 2)); width: min(420px, calc(100vw - var(--panel-left-w) - var(--panel-right-w) - 140px)); z-index: 12; height: 44px; }
+  /* ── Top Bar (Voyager + Search) ──────── */
+  .top-bar-wrap {
+    position: absolute; top: 20px; z-index: 12;
+    left: 50%; transform: translateX(calc(-50% + (var(--panel-left-w) - var(--panel-right-w)) / 2));
+    display: flex; align-items: flex-start; gap: 8px;
+    width: min(540px, calc(100vw - var(--panel-left-w) - var(--panel-right-w) - 140px));
+  }
+  .voyager-btn {
+    flex-shrink: 0; height: 44px; padding: 0 18px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-secondary);
+    font-family: var(--font-body); font-size: 13px; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+    backdrop-filter: blur(30px); box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    white-space: nowrap;
+  }
+  .voyager-btn:hover { border-color: var(--accent-title); color: var(--accent-title); }
+  .voyager-btn:active { transform: scale(0.97); }
+  .voyager-icon { flex-shrink: 0; }
+  .search-wrap { position: relative; flex: 1; min-width: 0; height: 44px; }
   .search-input { width: 100%; height: 44px; padding: 0 44px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 14px; outline: none; transition: border-color 0.2s, background 0.3s; backdrop-filter: blur(30px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
   .search-input::placeholder { color: var(--text-muted); }
   .search-input:focus { border-color: var(--text-secondary); }
@@ -200,12 +219,14 @@
   .search-no-result { padding: 12px 16px; font-size: 12px; color: var(--text-muted); }
 
   /* ── Responsive ─────────────────────────── */
-  @media (max-width: 900px) { .panel-right, #toggleRight { display: none; } .search-wrap { left: 50%; transform: translateX(-50%); width: min(420px, calc(100vw - var(--panel-left-w) - 100px)); } }
+  @media (max-width: 900px) { .panel-right, #toggleRight { display: none; } .top-bar-wrap { left: 50%; transform: translateX(-50%); width: min(540px, calc(100vw - var(--panel-left-w) - 100px)); } }
   @media (max-width: 768px) {
     .panel-left { top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 55vh; border-radius: 20px 20px 0 0; }
     .panel-left.collapsed { transform: translateY(calc(100% - 60px)); }
     #toggleLeft { display: none; }
-    .search-wrap { left: 20px; right: 20px; width: auto; transform: none; top: 16px; }
+    .top-bar-wrap { left: 20px; right: 20px; width: auto; transform: none; top: 16px; }
+    .voyager-btn span { display: none; }
+    .voyager-btn { padding: 0 12px; }
   }
 
   @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -221,11 +242,17 @@
 
 <div id="map"></div>
 
-<div class="search-wrap" id="searchWrap">
-  <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-  <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un nom, une ville, une entreprise…" autocomplete="off">
-  <button class="search-clear" id="searchClear">×</button>
-  <div class="search-results" id="searchResults"></div>
+<div class="top-bar-wrap" id="topBarWrap">
+  <button class="voyager-btn" id="voyagerBtn">
+    <svg class="voyager-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36z"/></svg>
+    <span>Voyager</span>
+  </button>
+  <div class="search-wrap" id="searchWrap">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un nom, une ville, une entreprise…" autocomplete="off">
+    <button class="search-clear" id="searchClear">×</button>
+    <div class="search-results" id="searchResults"></div>
+  </div>
 </div>
 
 <div class="panel-base panel-left" id="panelLeft">
@@ -399,6 +426,11 @@ function init(){
   document.getElementById('toggleLeft').addEventListener('click',()=>{ document.getElementById('panelLeft').classList.toggle('collapsed'); updateMapPadding(); });
   document.getElementById('toggleRight').addEventListener('click',()=>{ document.getElementById('panelRight').classList.toggle('collapsed'); updateMapPadding(); });
   document.getElementById('resetFilters').addEventListener('click', resetAllFilters);
+  document.getElementById('voyagerBtn').addEventListener('click', () => {
+    if (destinations.length === 0) return;
+    const d = destinations[Math.floor(Math.random() * destinations.length)];
+    openPopup(d);
+  });
   document.getElementById('themeToggle').addEventListener('click', () => {
     document.body.classList.toggle('light');
     const isLight = document.body.classList.contains('light');
