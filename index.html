@@ -26,28 +26,35 @@
     --panel-left-w: 420px;
     --panel-right-w: 360px;
   }
+  /* ── Light Mode ────────────────────────── */
+  body.light {
+    --bg-primary: #F5F3EF;
+    --bg-panel: #FFFFFF;
+    --bg-card: #F0EDE8;
+    --bg-hover: #E8E5DF;
+    --border: #D4D0C8;
+    --text-primary: #1A1A1D;
+    --text-secondary: #6B6B75;
+    --text-muted: #9A9AA5;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); overflow: hidden; height: 100vh; width: 100vw; }
+  body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); overflow: hidden; height: 100vh; width: 100vw; transition: background 0.3s, color 0.3s; }
   #map { position: absolute; inset: 0; z-index: 0; }
 
-  /* ── Shared Panel Base ─────────────────── */
   .panel-base {
     position: absolute; top: 20px; bottom: 20px;
     background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px;
     z-index: 10; display: flex; flex-direction: column; overflow: hidden;
     backdrop-filter: blur(30px); box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s, border-color 0.3s;
   }
+  body.light .panel-base { box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
 
-  /* ── Left Panel ────────────────────────── */
   .panel-left { left: 20px; width: var(--panel-left-w); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .panel-left.collapsed { transform: translateX(calc(-100% - 30px)); }
-
-  /* ── Right Panel ───────────────────────── */
   .panel-right { right: 20px; width: var(--panel-right-w); }
   .panel-right.collapsed { transform: translateX(calc(100% + 30px)); }
 
-  /* ── Toggle Buttons ────────────────────── */
   .toggle-btn {
     position: absolute; top: 28px; z-index: 11; width: 40px; height: 40px;
     background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px;
@@ -61,22 +68,19 @@
   #toggleRight { right: calc(var(--panel-right-w) + 30px); }
   .panel-right.collapsed ~ #toggleRight { right: 20px; }
 
-  /* ── Header ────────────────────────────── */
   .panel-header { padding: 28px 24px 0; }
   .panel-header h1 { font-family: var(--font-display); font-size: 26px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; white-space: nowrap; }
   .panel-header h1 em { font-style: italic; color: var(--accent-title); }
   .panel-header .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 300; }
 
-  /* ── Stats ──────────────────────────────── */
   .stats-row { display: flex; gap: 6px; padding: 14px 24px 0; }
-  .stat-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px; }
+  .stat-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px; transition: background 0.3s, border-color 0.3s; }
   .stat-card .number { font-family: var(--font-display); font-size: 22px; line-height: 1; margin-bottom: 3px; }
   .stat-card .label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
   .stat-card.stages .number { color: var(--accent-stage); }
   .stat-card.exchanges .number { color: var(--accent-exchange); }
   .stat-card.alumni .number { color: var(--accent-alumni); }
 
-  /* ── Filters ───────────────────────────── */
   .filters { padding: 16px 24px 12px; }
   .filter-group { margin-bottom: 12px; }
   .filter-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 500; margin-bottom: 7px; }
@@ -84,17 +88,44 @@
   .chip { padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 400; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-family: var(--font-body); }
   .chip:hover { border-color: var(--text-secondary); color: var(--text-primary); }
   .chip.active { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); font-weight: 500; }
-  .chip.active.stage-chip { background: var(--accent-stage); border-color: var(--accent-stage); color: var(--bg-primary); }
-  .chip.active.exchange-chip { background: var(--accent-exchange); border-color: var(--accent-exchange); color: var(--bg-primary); }
-  .chip.active.alumni-chip { background: var(--accent-alumni); border-color: var(--accent-alumni); color: var(--bg-primary); }
+  .chip.active.stage-chip { background: var(--accent-stage); border-color: var(--accent-stage); color: #fff; }
+  .chip.active.exchange-chip { background: var(--accent-exchange); border-color: var(--accent-exchange); color: #fff; }
+  .chip.active.alumni-chip { background: var(--accent-alumni); border-color: var(--accent-alumni); color: #fff; }
 
-  /* ── School Banner ─────────────────────── */
-  .school-banner { padding: 12px 24px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); text-align: center; margin-top: auto; flex-shrink: 0; }
+  /* ── Reset Button ──────────────────────── */
+  .reset-btn {
+    display: none; margin: 0 24px 12px; padding: 7px 0; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+    font-size: 11px; font-family: var(--font-body); cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .reset-btn.visible { display: block; }
+  .reset-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+  /* ── Panel Footer ──────────────────────── */
+  .panel-footer { border-top: 1px solid var(--border); margin-top: auto; flex-shrink: 0; padding: 12px 24px 16px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .theme-toggle {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    font-size: 11px; color: var(--text-muted); transition: color 0.15s; user-select: none;
+  }
+  .theme-toggle:hover { color: var(--text-secondary); }
+  .theme-switch {
+    width: 36px; height: 20px; border-radius: 10px; background: var(--border);
+    position: relative; transition: background 0.25s;
+  }
+  .theme-switch::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--text-secondary); transition: transform 0.25s, background 0.25s;
+  }
+  body.light .theme-switch { background: var(--accent-title); }
+  body.light .theme-switch::after { transform: translateX(16px); background: #fff; }
+  .school-banner { font-size: 11px; color: var(--text-muted); text-align: center; }
 
   /* ── Right Panel Header ────────────────── */
   .list-panel-header { padding: 24px 24px 12px; flex-shrink: 0; }
   .list-panel-header h2 { font-family: var(--font-display); font-size: 20px; font-weight: 400; }
   .list-panel-header .count { font-size: 12px; color: var(--text-secondary); font-weight: 300; }
+  .list-panel-header .count-detail { font-size: 11px; color: var(--text-muted); font-weight: 300; }
 
   /* ── Destination List ──────────────────── */
   .destination-list { flex: 1; overflow-y: auto; padding: 0 14px 20px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
@@ -106,10 +137,16 @@
   }
   .continent-header:hover { color: var(--text-secondary); }
   .continent-header:first-child { padding-top: 4px; }
-  .continent-arrow { font-size: 11px; transition: transform 0.25s ease; }
-  .continent-header.collapsed .continent-arrow { transform: rotate(-90deg); }
-  .continent-group { overflow: hidden; transition: max-height 0.3s ease; }
-  .continent-group.collapsed { max-height: 0 !important; }
+  .collapse-arrow { font-size: 11px; transition: transform 0.25s ease; }
+  .continent-header.collapsed .collapse-arrow { transform: rotate(-90deg); }
+  .collapsible { overflow: hidden; transition: max-height 0.3s ease; }
+  .collapsible.collapsed { max-height: 0 !important; }
+
+  .country-header {
+    font-size: 10px; color: var(--text-muted); font-weight: 400; padding: 8px 12px 4px 20px;
+    letter-spacing: 0.03em; opacity: 0.7;
+  }
+
   .dest-item { padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: background 0.15s; display: flex; gap: 10px; align-items: flex-start; }
   .dest-item:hover { background: var(--bg-hover); }
   .dest-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
@@ -139,70 +176,22 @@
   .popup-specialization { font-size: 12.5px; color: var(--text-secondary); font-weight: 300; font-style: italic; margin-bottom: 3px; }
   .popup-location { font-size: 13px; color: var(--text-secondary); font-weight: 300; }
 
-  /* ── Cluster Popup Navigation ──────────── */
-  .popup-nav {
-    display: flex; align-items: center; justify-content: space-between;
-    padding-top: 14px; margin-top: 6px; border-top: 1px solid var(--border);
-  }
-  .popup-nav-btn {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-    color: var(--text-secondary); width: 32px; height: 32px; font-size: 16px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-  }
+  .popup-nav { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; margin-top: 6px; border-top: 1px solid var(--border); }
+  .popup-nav-btn { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
   .popup-nav-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-  .popup-nav-counter { font-size: 11px; color: var(--text-muted); letter-spacing: 0.03em; }
+  .popup-nav-counter { font-size: 11px; color: var(--text-muted); }
 
-  /* ── Search Bar (floating top center) ────── */
-  .search-wrap {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(calc(-50% + (var(--panel-left-w) - var(--panel-right-w)) / 2));
-    width: min(420px, calc(100vw - var(--panel-left-w) - var(--panel-right-w) - 140px));
-    z-index: 12;
-    height: 44px;
-  }
-  .search-input {
-    width: 100%; height: 44px;
-    padding: 0 44px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--bg-panel);
-    color: var(--text-primary);
-    font-family: var(--font-body);
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-    backdrop-filter: blur(30px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-  }
+  /* ── Search Bar ────────────────────────── */
+  .search-wrap { position: absolute; top: 20px; left: 50%; transform: translateX(calc(-50% + (var(--panel-left-w) - var(--panel-right-w)) / 2)); width: min(420px, calc(100vw - var(--panel-left-w) - var(--panel-right-w) - 140px)); z-index: 12; height: 44px; }
+  .search-input { width: 100%; height: 44px; padding: 0 44px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 14px; outline: none; transition: border-color 0.2s, background 0.3s; backdrop-filter: blur(30px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
   .search-input::placeholder { color: var(--text-muted); }
   .search-input:focus { border-color: var(--text-secondary); }
-  .search-icon {
-    position: absolute; left: 15px; top: 0; height: 44px;
-    display: flex; align-items: center;
-    color: var(--text-muted); pointer-events: none;
-  }
-  .search-clear {
-    position: absolute; right: 10px; top: 0; height: 44px;
-    display: none; align-items: center; justify-content: center;
-    background: none; border: none; color: var(--text-muted);
-    font-size: 18px; cursor: pointer; padding: 0 6px; line-height: 1;
-  }
+  .search-icon { position: absolute; left: 15px; top: 0; height: 44px; display: flex; align-items: center; color: var(--text-muted); pointer-events: none; }
+  .search-clear { position: absolute; right: 10px; top: 0; height: 44px; display: none; align-items: center; justify-content: center; background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 0 6px; }
   .search-clear:hover { color: var(--text-primary); }
-  .search-results {
-    position: absolute; left: 0; right: 0; top: 100%; margin-top: 6px;
-    background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px;
-    max-height: 300px; overflow-y: auto; z-index: 20; display: none;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
-    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-  }
+  .search-results { position: absolute; left: 0; right: 0; top: 100%; margin-top: 6px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; max-height: 300px; overflow-y: auto; z-index: 20; display: none; box-shadow: 0 16px 40px rgba(0,0,0,0.5); scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .search-results.visible { display: block; }
-  .search-result-item {
-    padding: 10px 16px; cursor: pointer; transition: background 0.12s;
-    border-bottom: 1px solid var(--border);
-  }
+  .search-result-item { padding: 10px 16px; cursor: pointer; transition: background 0.12s; border-bottom: 1px solid var(--border); }
   .search-result-item:last-child { border-bottom: none; }
   .search-result-item:hover { background: var(--bg-hover); }
   .search-result-city { font-size: 13px; font-weight: 500; }
@@ -219,7 +208,6 @@
     .search-wrap { left: 20px; right: 20px; width: auto; transform: none; top: 16px; }
   }
 
-  /* ── Animations ────────────────────────── */
   @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   .panel-header, .stats-row, .filters { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
   .stats-row { animation-delay: 0.05s; }
@@ -233,7 +221,6 @@
 
 <div id="map"></div>
 
-<!-- FLOATING SEARCH BAR -->
 <div class="search-wrap" id="searchWrap">
   <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
   <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un nom, une ville, une entreprise…" autocomplete="off">
@@ -241,7 +228,6 @@
   <div class="search-results" id="searchResults"></div>
 </div>
 
-<!-- LEFT PANEL: Stats & Filters -->
 <div class="panel-base panel-left" id="panelLeft">
   <div class="panel-header">
     <h1>Cartographie des <em>Stratos</em></h1>
@@ -258,41 +244,28 @@
     <div class="stat-card"><div class="number" id="countCountries">0</div><div class="label">Pays</div></div>
   </div>
   <div class="filters">
-    <div class="filter-group">
-      <div class="filter-label">Campus</div>
-      <div class="filter-chips" id="campusFilters"><button class="chip active" data-filter="all">Tous</button></div>
-    </div>
-    <div class="filter-group">
-      <div class="filter-label">Type</div>
-      <div class="filter-chips" id="typeFilters">
-        <button class="chip active" data-filter="all">Tous</button>
-        <button class="chip stage-chip" data-filter="stage">Stages</button>
-        <button class="chip exchange-chip" data-filter="exchange">Échanges</button>
-        <button class="chip alumni-chip" data-filter="alumni">Alumni</button>
-      </div>
-    </div>
-    <div class="filter-group">
-      <div class="filter-label">Promotion</div>
-      <div class="filter-chips" id="promoFilters"><button class="chip active" data-filter="all">Toutes</button></div>
-    </div>
-    <div class="filter-group">
-      <div class="filter-label">Année académique</div>
-      <div class="filter-chips" id="yearFilters"><button class="chip active" data-filter="all">Toutes</button></div>
-    </div>
-    <div class="filter-group">
-      <div class="filter-label">Spécialisation</div>
-      <div class="filter-chips" id="specFilters"><button class="chip active" data-filter="all">Toutes</button></div>
-    </div>
+    <div class="filter-group"><div class="filter-label">Campus</div><div class="filter-chips" id="campusFilters"><button class="chip active" data-filter="all">Tous</button></div></div>
+    <div class="filter-group"><div class="filter-label">Type</div><div class="filter-chips" id="typeFilters"><button class="chip active" data-filter="all">Tous</button><button class="chip stage-chip" data-filter="stage">Stages</button><button class="chip exchange-chip" data-filter="exchange">Échanges</button><button class="chip alumni-chip" data-filter="alumni">Alumni</button></div></div>
+    <div class="filter-group"><div class="filter-label">Promotion</div><div class="filter-chips" id="promoFilters"><button class="chip active" data-filter="all">Toutes</button></div></div>
+    <div class="filter-group"><div class="filter-label">Année académique</div><div class="filter-chips" id="yearFilters"><button class="chip active" data-filter="all">Toutes</button></div></div>
+    <div class="filter-group"><div class="filter-label">Spécialisation</div><div class="filter-chips" id="specFilters"><button class="chip active" data-filter="all">Toutes</button></div></div>
   </div>
-  <div class="school-banner">Strate, École de Design — Lyon</div>
+  <button class="reset-btn" id="resetFilters">Réinitialiser les filtres</button>
+  <div class="panel-footer">
+    <div class="theme-toggle" id="themeToggle">
+      <div class="theme-switch"></div>
+      <span>Mode clair</span>
+    </div>
+    <div class="school-banner">Strate, École de Design — Lyon</div>
+  </div>
 </div>
 <button class="toggle-btn" id="toggleLeft">☰</button>
 
-<!-- RIGHT PANEL: Destination List -->
 <div class="panel-base panel-right" id="panelRight">
   <div class="list-panel-header">
     <h2>Destinations</h2>
-    <span class="count" id="listCount">0 destinations</span>
+    <span class="count" id="listCount">0 destinations</span><br>
+    <span class="count-detail" id="listEntries">0 entrées</span>
   </div>
   <div class="destination-list" id="destinationList"></div>
 </div>
@@ -301,12 +274,11 @@
 <script>
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-0YFn6d_UV6M6IPHTgm_Twik3wWjmXI1pAH3lfg3ACTn_mHc9Nr7EQP0X9tDQCAT6EVVKnSwu-VyR/pub?gid=0&single=true&output=csv';
 let destinations = [];
+let highlightedIndex = -1;
 
 async function loadData() {
-  try {
-    const r = await fetch(SHEET_URL); destinations = parseCSV(await r.text());
-  } catch (e) {
-    console.error('Erreur chargement:', e);
+  try { const r = await fetch(SHEET_URL); destinations = parseCSV(await r.text()); }
+  catch(e) {
     destinations = [
       { student:"Paul C", promo:2025, type:"stage", country:"France", city:"Lyon", lat:45.764, lng:4.8357, org:"Strate", specialization:"Design produit", linkedin:"", website:"", campus:"Lyon", academicYear:"2024-2025" },
       { student:"Léa Capaloux", promo:2024, type:"stage", country:"Japon", city:"Tokyo", lat:35.6762, lng:139.6503, org:"ULTRA LAB Design", specialization:"Design industriel", linkedin:"", website:"", campus:"Lyon", academicYear:"2023-2024" },
@@ -332,9 +304,8 @@ function parseCSV(csv) {
     const studentFallback = obj.student||obj.etudiant||obj['étudiant']||'';
     const student = (prenom||nom) ? `${prenom} ${nom}`.trim() : studentFallback;
     return {
-      student,
-      promo: parseInt(obj.promo||obj.promotion||obj['année']||obj.annee),
-      type, country: obj.country||obj.pays||'', city: obj.city||obj.ville||'',
+      student, promo: parseInt(obj.promo||obj.promotion||obj['année']||obj.annee), type,
+      country: obj.country||obj.pays||'', city: obj.city||obj.ville||'',
       lat: parseFloat(obj.lat||obj.latitude), lng: parseFloat(obj.lng||obj.longitude),
       org: obj.org||obj.organisation||obj.entreprise||obj['école']||obj.ecole||'',
       specialization: obj.specialization||obj['spécialisation']||obj.specialisation||obj['spécialisations']||obj.specialisations||obj['spécialité']||obj.specialite||'',
@@ -379,7 +350,9 @@ function getContinent(c){ return CC[(c||'').toLowerCase().trim()]||'Autre'; }
 mapboxgl.accessToken = 'pk.eyJ1Ijoic3RyYXRlIiwiYSI6ImNtbTR1b2I0NDBmcmkycXFyMjhobDA2aWwifQ.uB8YsiprpJJtCxiwB99BCQ';
 const map = new mapboxgl.Map({ container:'map', style:'mapbox://styles/mapbox/dark-v11', center:[10,30], zoom:1.8, minZoom:1.2, maxZoom:18, projection:'globe', antialias:true });
 map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
-map.on('style.load',()=>{ map.setFog({color:'#0E0E10','high-color':'#161619','horizon-blend':0.04,'space-color':'#0E0E10','star-intensity':0.3}); });
+map.on('style.load',()=>{
+  map.setFog({color:'#0E0E10','high-color':'#161619','horizon-blend':0.04,'space-color':'#0E0E10','star-intensity':0.3});
+});
 
 let activeTypes=new Set(), activePromos=new Set(), activeSpecs=new Set(), activeCampus=new Set(), activeYears=new Set(), currentPopup=null;
 
@@ -394,8 +367,27 @@ function setupMultiFilter(id, set, parse) {
       if(set.has(v)){set.delete(v);chip.classList.remove('active');}else{set.add(v);chip.classList.add('active');}
       if(set.size===0) document.querySelector(`#${id} .chip[data-filter="all"]`).classList.add('active');
     }
+    updateResetBtn();
     updateView();
   });
+}
+
+function hasActiveFilters() {
+  return activeTypes.size > 0 || activePromos.size > 0 || activeSpecs.size > 0 || activeCampus.size > 0 || activeYears.size > 0;
+}
+
+function updateResetBtn() {
+  document.getElementById('resetFilters').classList.toggle('visible', hasActiveFilters());
+}
+
+function resetAllFilters() {
+  [activeTypes, activePromos, activeSpecs, activeCampus, activeYears].forEach(s => s.clear());
+  ['typeFilters','promoFilters','specFilters','campusFilters','yearFilters'].forEach(id => {
+    document.querySelectorAll(`#${id} .chip`).forEach(c => c.classList.remove('active'));
+    document.querySelector(`#${id} .chip[data-filter="all"]`).classList.add('active');
+  });
+  updateResetBtn();
+  updateView();
 }
 
 function init(){
@@ -406,66 +398,50 @@ function init(){
   setupMultiFilter('specFilters',activeSpecs);
   document.getElementById('toggleLeft').addEventListener('click',()=>{ document.getElementById('panelLeft').classList.toggle('collapsed'); updateMapPadding(); });
   document.getElementById('toggleRight').addEventListener('click',()=>{ document.getElementById('panelRight').classList.toggle('collapsed'); updateMapPadding(); });
+  document.getElementById('resetFilters').addEventListener('click', resetAllFilters);
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    const isLight = document.body.classList.contains('light');
+    map.setStyle(isLight ? 'mapbox://styles/mapbox/light-v11' : 'mapbox://styles/mapbox/dark-v11');
+    map.once('style.load', () => {
+      if (!isLight) map.setFog({color:'#0E0E10','high-color':'#161619','horizon-blend':0.04,'space-color':'#0E0E10','star-intensity':0.3});
+      createMarkers(); updateView();
+    });
+  });
   initSearch();
 }
 
-// ══════════════════════════════════════════════
-//  SEARCH
-// ══════════════════════════════════════════════
 function initSearch() {
   const input = document.getElementById('searchInput');
   const clearBtn = document.getElementById('searchClear');
   const resultsEl = document.getElementById('searchResults');
-
   input.addEventListener('input', () => {
     const q = input.value.trim().toLowerCase();
     clearBtn.style.display = q ? 'flex' : 'none';
     if (q.length < 2) { resultsEl.classList.remove('visible'); return; }
-    const matches = destinations.filter(d => {
-      return [d.student, d.city, d.country, d.org, d.specialization, d.campus, d.academicYear, String(d.promo)]
-        .some(f => (f||'').toLowerCase().includes(q));
-    }).slice(0, 12);
-
+    const matches = destinations.filter(d =>
+      [d.student, d.city, d.country, d.org, d.specialization, d.campus, d.academicYear, String(d.promo)]
+        .some(f => (f||'').toLowerCase().includes(q))
+    ).slice(0, 12);
     resultsEl.innerHTML = '';
-    if (matches.length === 0) {
-      resultsEl.innerHTML = '<div class="search-no-result">Aucun résultat</div>';
-    } else {
-      matches.forEach(d => {
-        const item = document.createElement('div');
-        item.className = 'search-result-item';
-        item.innerHTML = `
-          <div class="search-result-city">${highlight(d.student, q)} · ${highlight(d.city, q)}, ${d.country}</div>
-          <div class="search-result-detail">${highlight(d.org, q)}${d.specialization ? ' · ' + highlight(d.specialization, q) : ''} — ${d.promo}</div>
-        `;
-        item.addEventListener('click', () => {
-          openPopup(d);
-          resultsEl.classList.remove('visible');
-          input.value = d.student;
-          clearBtn.style.display = 'flex';
-        });
-        resultsEl.appendChild(item);
-      });
-    }
+    if (!matches.length) { resultsEl.innerHTML = '<div class="search-no-result">Aucun résultat</div>'; }
+    else matches.forEach(d => {
+      const item = document.createElement('div'); item.className = 'search-result-item';
+      item.innerHTML = `<div class="search-result-city">${hl(d.student,q)} · ${hl(d.city,q)}, ${d.country}</div><div class="search-result-detail">${hl(d.org,q)}${d.specialization?' · '+hl(d.specialization,q):''} — ${d.promo}</div>`;
+      item.addEventListener('click', () => { openPopup(d); resultsEl.classList.remove('visible'); input.value = d.student; clearBtn.style.display = 'flex'; });
+      resultsEl.appendChild(item);
+    });
     resultsEl.classList.add('visible');
   });
-
-  clearBtn.addEventListener('click', () => {
-    input.value = '';
-    clearBtn.style.display = 'none';
-    resultsEl.classList.remove('visible');
-  });
-
-  // Fermer résultats si clic en dehors
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-wrap')) resultsEl.classList.remove('visible');
-  });
+  clearBtn.addEventListener('click', () => { input.value = ''; clearBtn.style.display = 'none'; resultsEl.classList.remove('visible'); });
+  document.addEventListener('click', e => { if (!e.target.closest('.search-wrap')) resultsEl.classList.remove('visible'); });
 }
 
-function highlight(text, query) {
-  if (!text || !query) return text || '';
-  const idx = text.toLowerCase().indexOf(query);
-  if (idx === -1) return text;
-  return text.slice(0, idx) + '<span class="search-result-match">' + text.slice(idx, idx + query.length) + '</span>' + text.slice(idx + query.length);
+function hl(text, q) {
+  if (!text||!q) return text||'';
+  const i = text.toLowerCase().indexOf(q);
+  if (i===-1) return text;
+  return text.slice(0,i)+'<span class="search-result-match">'+text.slice(i,i+q.length)+'</span>'+text.slice(i+q.length);
 }
 
 function updateMapPadding(){
@@ -476,13 +452,7 @@ function updateMapPadding(){
   else map.easeTo({padding:{top:0,left:lOpen?440:0,right:rOpen?380:0,bottom:0},duration:400});
 }
 
-function buildCampusFilters(){
-  const c=document.getElementById('campusFilters');
-  c.querySelectorAll('.chip:not([data-filter="all"])').forEach(e=>e.remove());
-  [...new Set(destinations.map(d=>d.campus).filter(s=>s&&s.trim()))].sort((a,b)=>a.localeCompare(b,'fr')).forEach(s=>{
-    const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch);
-  });
-}
+function buildCampusFilters(){ buildDynFilter('campusFilters', destinations.map(d=>d.campus)); }
 function buildPromoFilters(){
   const c=document.getElementById('promoFilters');
   c.querySelectorAll('.chip:not([data-filter="all"])').forEach(e=>e.remove());
@@ -490,62 +460,76 @@ function buildPromoFilters(){
     const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=p;ch.textContent=p;c.appendChild(ch);
   });
 }
-function buildSpecFilters(){
-  const c=document.getElementById('specFilters');
+function buildSpecFilters(){ buildDynFilter('specFilters', destinations.map(d=>d.specialization)); }
+function buildYearFilters(){ buildDynFilter('yearFilters', destinations.map(d=>d.academicYear), true); }
+function buildDynFilter(id, vals, reverse){
+  const c=document.getElementById(id);
   c.querySelectorAll('.chip:not([data-filter="all"])').forEach(e=>e.remove());
-  [...new Set(destinations.map(d=>d.specialization).filter(s=>s&&s.trim()))].sort((a,b)=>a.localeCompare(b,'fr')).forEach(s=>{
-    const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch);
-  });
-}
-function buildYearFilters(){
-  const c=document.getElementById('yearFilters');
-  c.querySelectorAll('.chip:not([data-filter="all"])').forEach(e=>e.remove());
-  [...new Set(destinations.map(d=>d.academicYear).filter(s=>s&&s.trim()))].sort((a,b)=>b.localeCompare(a)).forEach(s=>{
-    const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch);
-  });
+  const u=[...new Set(vals.filter(s=>s&&s.trim()))];
+  u.sort((a,b)=> reverse ? b.localeCompare(a) : a.localeCompare(b,'fr'));
+  u.forEach(s=>{ const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch); });
 }
 
 const TC={stage:'#5EBD8C',exchange:'#6FA3EF',alumni:'#A78BFA'};
 function toGJ(data){return{type:'FeatureCollection',features:data.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:[d.lng,d.lat]},properties:{type:d.type,_origIndex:d._origIndex}}))};}
 
 function createMarkers(){
-  ['glow-stage','glow-exchange','glow-alumni','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
+  ['highlight-pulse','glow-stage','glow-exchange','glow-alumni','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
   if(map.getSource('destinations'))map.removeSource('destinations');
+  if(map.getSource('highlight'))map.removeSource('highlight');
+
   map.addSource('destinations',{type:'geojson',data:toGJ(destinations)});
+  // Highlight source for hover pulse
+  map.addSource('highlight',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+
   ['stage','exchange','alumni'].forEach(t=>{
-    // Glow layer
     map.addLayer({id:`glow-${t}`,type:'circle',source:'destinations',filter:['==',['get','type'],t],paint:{'circle-color':TC[t],'circle-radius':14,'circle-blur':1,'circle-opacity':0.3}});
-    // Main point
     map.addLayer({id:`unclustered-${t}`,type:'circle',source:'destinations',filter:['==',['get','type'],t],paint:{'circle-color':TC[t],'circle-radius':6,'circle-stroke-width':0,'circle-opacity':0.95}});
   });
+
+  // Highlight pulse layer (on top)
+  map.addLayer({id:'highlight-pulse',type:'circle',source:'highlight',paint:{
+    'circle-color':['get','color'],'circle-radius':18,'circle-blur':0.6,'circle-opacity':0.5
+  }});
+
   ['unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{
     map.on('click',id,e=>{const d=destinations[e.features[0].properties._origIndex];if(d)openPopup(d);});
-  });
-  ['unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{
     map.on('mouseenter',id,()=>{map.getCanvas().style.cursor='pointer';});
     map.on('mouseleave',id,()=>{map.getCanvas().style.cursor='';});
   });
+}
+
+function highlightPoint(d) {
+  const src = map.getSource('highlight');
+  if(!src) return;
+  src.setData({type:'FeatureCollection',features:[{
+    type:'Feature',
+    geometry:{type:'Point',coordinates:[d.lng,d.lat]},
+    properties:{color:TC[d.type]||'#fff'}
+  }]});
+}
+
+function clearHighlight() {
+  const src = map.getSource('highlight');
+  if(src) src.setData({type:'FeatureCollection',features:[]});
 }
 
 function getTypeLabel(t){return t==='exchange'?'Échange':t==='alumni'?'Alumni':'Stage';}
 
 function openPopup(d){
   if(currentPopup)currentPopup.remove();
-  currentPopup=new mapboxgl.Popup({offset:18,closeButton:true,maxWidth:'300px'})
-    .setLngLat([d.lng,d.lat])
-    .setHTML(popupHTML(d))
-    .addTo(map);
+  currentPopup=new mapboxgl.Popup({offset:18,closeButton:true,maxWidth:'300px'}).setLngLat([d.lng,d.lat]).setHTML(popupHTML(d)).addTo(map);
   map.flyTo({center:[d.lng,d.lat],zoom:Math.max(map.getZoom(),4),duration:1200,essential:true});
 }
 
 function popupHTML(d) {
-  const subParts = [];
-  if(d.promo) subParts.push('Promo '+d.promo);
-  if(d.campus) subParts.push('Strate '+d.campus);
-  const yearLabel = d.academicYear ? ' | '+d.academicYear : '';
+  const sub = [];
+  if(d.promo) sub.push('Promo '+d.promo);
+  if(d.campus) sub.push('Strate '+d.campus);
+  const yr = d.academicYear ? ' | '+d.academicYear : '';
   return `
-    <div class="popup-type ${d.type}">${getTypeLabel(d.type)}${yearLabel}</div>
-    ${subParts.length?`<div class="popup-subline">${subParts.join(' · ')}</div>`:''}
+    <div class="popup-type ${d.type}">${getTypeLabel(d.type)}${yr}</div>
+    ${sub.length?`<div class="popup-subline">${sub.join(' · ')}</div>`:''}
     <div class="popup-student">${d.student}</div>
     ${d.linkedin?`<a class="popup-link" href="${d.linkedin}" target="_blank" rel="noopener">Profil LinkedIn ↗</a>`:''}
     <div class="popup-section">
@@ -560,37 +544,15 @@ function popupHTML(d) {
 function openClusterPopup(items, coords) {
   if(currentPopup) currentPopup.remove();
   let idx = 0;
-
-  function render() {
-    const d = items[idx];
-    const nav = items.length > 1 ? `
-      <div class="popup-nav">
-        <button class="popup-nav-btn" id="popupPrev">‹</button>
-        <span class="popup-nav-counter">${idx+1} / ${items.length}</span>
-        <button class="popup-nav-btn" id="popupNext">›</button>
-      </div>
-    ` : '';
-    return `<div id="clusterPopupContent">${popupHTML(d)}${nav}</div>`;
+  function nav(){ return items.length>1?`<div class="popup-nav"><button class="popup-nav-btn" id="popupPrev">‹</button><span class="popup-nav-counter">${idx+1} / ${items.length}</span><button class="popup-nav-btn" id="popupNext">›</button></div>`:''; }
+  currentPopup = new mapboxgl.Popup({offset:18,closeButton:true,maxWidth:'300px'}).setLngLat(coords).setHTML(`<div id="cpC">${popupHTML(items[0])}${nav()}</div>`).addTo(map);
+  function bind(){
+    const p=document.getElementById('popupPrev'),n=document.getElementById('popupNext');
+    if(p)p.onclick=e=>{e.stopPropagation();idx=(idx-1+items.length)%items.length;upd();};
+    if(n)n.onclick=e=>{e.stopPropagation();idx=(idx+1)%items.length;upd();};
   }
-
-  currentPopup = new mapboxgl.Popup({offset:18, closeButton:true, maxWidth:'300px'})
-    .setLngLat(coords)
-    .setHTML(render())
-    .addTo(map);
-
-  function attachNav() {
-    const prev = document.getElementById('popupPrev');
-    const next = document.getElementById('popupNext');
-    if(prev) prev.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx - 1 + items.length) % items.length; update(); });
-    if(next) next.addEventListener('click', (e) => { e.stopPropagation(); idx = (idx + 1) % items.length; update(); });
-  }
-
-  function update() {
-    const el = document.getElementById('clusterPopupContent');
-    if(el) { el.innerHTML = popupHTML(items[idx]) + (items.length > 1 ? `<div class="popup-nav"><button class="popup-nav-btn" id="popupPrev">‹</button><span class="popup-nav-counter">${idx+1} / ${items.length}</span><button class="popup-nav-btn" id="popupNext">›</button></div>` : ''); attachNav(); }
-  }
-
-  attachNav();
+  function upd(){const el=document.getElementById('cpC');if(el){el.innerHTML=popupHTML(items[idx])+nav();bind();}}
+  bind();
 }
 
 function updateView(){
@@ -599,7 +561,6 @@ function updateView(){
   });
   const src=map.getSource('destinations'); if(src)src.setData(toGJ(filtered));
 
-  // Stats
   document.getElementById('countStages').textContent=filtered.filter(d=>d.type==='stage').length;
   document.getElementById('countExchanges').textContent=filtered.filter(d=>d.type==='exchange').length;
   document.getElementById('countAlumni').textContent=filtered.filter(d=>d.type==='alumni').length;
@@ -609,37 +570,68 @@ function updateView(){
   document.getElementById('countStratos').textContent=uStudents.size;
   document.getElementById('countCities').textContent=uCities.size;
   document.getElementById('countCountries').textContent=uCountries.size;
+  document.getElementById('listCount').textContent=`${uCities.size} destination${uCities.size>1?'s':''}`;
+  document.getElementById('listEntries').textContent=`${filtered.length} entrée${filtered.length>1?'s':''}`;
 
-  // List
-  if(!window._collapsedContinents) window._collapsedContinents = new Set();
-  const groups={};
-  filtered.forEach(d=>{const c=getContinent(d.country);if(!groups[c])groups[c]=[];groups[c].push(d);});
-  Object.values(groups).forEach(a=>a.sort((a,b)=>a.city.localeCompare(b.city,'fr')));
-  const sorted=Object.keys(groups).sort((a,b)=>CO.indexOf(a)-CO.indexOf(b));
-  const list=document.getElementById('destinationList'); list.innerHTML='';
-  sorted.forEach(cont=>{
-    const uniqueCitiesCont = new Set(groups[cont].map(d=>`${d.city}-${d.country}`));
-    const isCollapsed = window._collapsedContinents.has(cont);
-    const h=document.createElement('div');
-    h.className='continent-header'+(isCollapsed?' collapsed':'');
-    h.innerHTML=`<span>${cont} (${uniqueCitiesCont.size})</span><span class="continent-arrow">▼</span>`;
-    h.addEventListener('click',()=>{
-      h.classList.toggle('collapsed');
-      grp.classList.toggle('collapsed');
-      if(h.classList.contains('collapsed')) window._collapsedContinents.add(cont);
-      else window._collapsedContinents.delete(cont);
+  // Build list grouped by continent > country
+  if(!window._collapsed) window._collapsed = new Set();
+  const continentMap = {};
+  filtered.forEach(d => {
+    const cont = getContinent(d.country);
+    if(!continentMap[cont]) continentMap[cont] = {};
+    const country = d.country || 'Inconnu';
+    if(!continentMap[cont][country]) continentMap[cont][country] = [];
+    continentMap[cont][country].push(d);
+  });
+
+  // Sort countries and items
+  Object.values(continentMap).forEach(countries => {
+    Object.values(countries).forEach(arr => arr.sort((a,b) => a.city.localeCompare(b.city,'fr')));
+  });
+
+  const sortedContinents = Object.keys(continentMap).sort((a,b) => CO.indexOf(a)-CO.indexOf(b));
+  const list = document.getElementById('destinationList');
+  list.innerHTML = '';
+
+  sortedContinents.forEach(cont => {
+    const countries = continentMap[cont];
+    const countryNames = Object.keys(countries).sort((a,b) => a.localeCompare(b,'fr'));
+    const totalCities = new Set();
+    countryNames.forEach(cn => countries[cn].forEach(d => totalCities.add(`${d.city}-${d.country}`)));
+
+    const isCollapsed = window._collapsed.has(cont);
+    const h = document.createElement('div');
+    h.className = 'continent-header' + (isCollapsed?' collapsed':'');
+    h.innerHTML = `<span>${cont} (${totalCities.size})</span><span class="collapse-arrow">▼</span>`;
+
+    const grp = document.createElement('div');
+    grp.className = 'collapsible' + (isCollapsed?' collapsed':'');
+
+    h.addEventListener('click', () => {
+      h.classList.toggle('collapsed'); grp.classList.toggle('collapsed');
+      if(h.classList.contains('collapsed')) window._collapsed.add(cont); else window._collapsed.delete(cont);
     });
+
     list.appendChild(h);
-    const grp=document.createElement('div');
-    grp.className='continent-group'+(isCollapsed?' collapsed':'');
-    groups[cont].forEach(d=>{
-      const item=document.createElement('div');item.className='dest-item';
-      item.innerHTML=`<div class="dest-dot ${d.type}"></div><div class="dest-info"><div class="dest-city">${d.city}, ${d.country}</div><div class="dest-student">${d.student}${d.promo?' · Promo '+d.promo:''}</div><div class="dest-detail">${d.org}${d.specialization?' · '+d.specialization:''}</div></div>${d.academicYear?`<div class="dest-year">${d.academicYear}</div>`:''}`;
-      item.addEventListener('click',()=>openPopup(d));grp.appendChild(item);
+
+    countryNames.forEach(country => {
+      if(countryNames.length > 1) {
+        const ch = document.createElement('div');
+        ch.className = 'country-header';
+        ch.textContent = country;
+        grp.appendChild(ch);
+      }
+      countries[country].forEach(d => {
+        const item = document.createElement('div'); item.className = 'dest-item';
+        item.innerHTML = `<div class="dest-dot ${d.type}"></div><div class="dest-info"><div class="dest-city">${d.city}${countryNames.length<=1?', '+d.country:''}</div><div class="dest-student">${d.student}${d.promo?' · Promo '+d.promo:''}</div><div class="dest-detail">${d.org}${d.specialization?' · '+d.specialization:''}</div></div>${d.academicYear?`<div class="dest-year">${d.academicYear}</div>`:''}`;
+        item.addEventListener('click', () => openPopup(d));
+        item.addEventListener('mouseenter', () => highlightPoint(d));
+        item.addEventListener('mouseleave', () => clearHighlight());
+        grp.appendChild(item);
+      });
     });
     list.appendChild(grp);
   });
-  document.getElementById('listCount').textContent=`${uCities.size} destination${uCities.size>1?'s':''}`;
 }
 
 map.on('load',()=>{ init(); loadData(); updateMapPadding(); window.addEventListener('resize',updateMapPadding); });
