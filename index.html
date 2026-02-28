@@ -312,8 +312,12 @@ function parseCSV(csv) {
     const obj = {}; headers.forEach((h,i) => obj[h] = values[i]||'');
     const raw = (obj.type||obj.statut||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     let type = 'stage'; if (raw.includes('change')) type='exchange'; else if (raw.includes('alumni')) type='alumni';
+    const prenom = obj['prénom']||obj.prenom||obj.firstname||obj['first name']||'';
+    const nom = obj.nom||obj.name||obj.lastname||obj['last name']||'';
+    const studentFallback = obj.student||obj.etudiant||obj['étudiant']||'';
+    const student = (prenom||nom) ? `${prenom} ${nom}`.trim() : studentFallback;
     return {
-      student: obj.student||obj.etudiant||obj['étudiant']||obj['nom']||'',
+      student,
       promo: parseInt(obj.promo||obj.promotion||obj['année']||obj.annee),
       type, country: obj.country||obj.pays||'', city: obj.city||obj.ville||'',
       lat: parseFloat(obj.lat||obj.latitude), lng: parseFloat(obj.lng||obj.longitude),
