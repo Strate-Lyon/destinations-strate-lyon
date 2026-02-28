@@ -532,7 +532,7 @@ function popupHTML(d) {
   const subParts = [];
   if(d.promo) subParts.push('Promo '+d.promo);
   if(d.campus) subParts.push('Strate '+d.campus);
-  const yearLabel = d.academicYear ? ' — '+d.academicYear : '';
+  const yearLabel = d.academicYear ? ' | '+d.academicYear : '';
   return `
     <div class="popup-type ${d.type}">${getTypeLabel(d.type)}${yearLabel}</div>
     ${subParts.length?`<div class="popup-subline">${subParts.join(' · ')}</div>`:''}
@@ -610,7 +610,7 @@ function updateView(){
     const h=document.createElement('div');h.className='continent-header';h.textContent=`${cont} (${groups[cont].length})`;list.appendChild(h);
     groups[cont].forEach(d=>{
       const item=document.createElement('div');item.className='dest-item';
-      item.innerHTML=`<div class="dest-dot ${d.type}"></div><div class="dest-info"><div class="dest-city">${d.city}, ${d.country}</div><div class="dest-detail">${d.org}${d.specialization?' · '+d.specialization:''}</div><div class="dest-student">${d.student}</div></div><div class="dest-promo">${d.promo}</div>`;
+      item.innerHTML=`<div class="dest-dot ${d.type}"></div><div class="dest-info"><div class="dest-city">${d.city}, ${d.country}</div><div class="dest-detail">${d.org}${d.specialization?' · '+d.specialization:''}</div><div class="dest-student">${d.student}${d.promo?' · Promo '+d.promo:''}</div></div><div class="dest-promo">${d.academicYear||''}</div>`;
       item.addEventListener('click',()=>openPopup(d));list.appendChild(item);
     });
   });
