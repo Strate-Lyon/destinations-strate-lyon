@@ -116,17 +116,18 @@
   .mapboxgl-popup-content { background: var(--bg-panel) !important; border: 1px solid var(--border) !important; border-radius: 14px !important; padding: 22px 24px !important; color: var(--text-primary) !important; font-family: var(--font-body) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; min-width: 240px; }
   .mapboxgl-popup-tip { border-top-color: var(--bg-panel) !important; }
   .mapboxgl-popup-close-button { color: var(--text-muted) !important; font-size: 20px !important; right: 10px !important; top: 8px !important; }
-  .popup-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; margin-bottom: 10px; }
+  .popup-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; margin-bottom: 2px; }
   .popup-type.stage { color: var(--accent-stage); }
   .popup-type.exchange { color: var(--accent-exchange); }
   .popup-type.alumni { color: var(--accent-alumni); }
-  .popup-student { font-family: var(--font-display); font-size: 24px; line-height: 1.15; margin-bottom: 6px; }
-  .popup-org { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-  .popup-specialization { font-size: 12.5px; color: var(--text-secondary); font-weight: 300; font-style: italic; margin-bottom: 4px; }
-  .popup-link { display: inline-block; font-size: 11.5px; color: var(--text-muted); text-decoration: none; margin-bottom: 10px; transition: color 0.15s; }
+  .popup-subline { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; font-weight: 400; }
+  .popup-student { font-family: var(--font-display); font-size: 24px; line-height: 1.15; margin-bottom: 4px; }
+  .popup-link { display: inline-block; font-size: 11.5px; color: var(--text-muted); text-decoration: none; margin-bottom: 4px; transition: color 0.15s; }
   .popup-link:hover { color: var(--text-primary); }
+  .popup-section { padding-top: 12px; margin-top: 8px; border-top: 1px solid var(--border); }
+  .popup-org { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+  .popup-specialization { font-size: 12.5px; color: var(--text-secondary); font-weight: 300; font-style: italic; margin-bottom: 3px; }
   .popup-location { font-size: 13px; color: var(--text-secondary); font-weight: 300; }
-  .popup-meta { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--border); }
 
   /* ── Cluster Popup Navigation ──────────── */
   .popup-nav {
@@ -265,6 +266,10 @@
       <div class="filter-chips" id="promoFilters"><button class="chip active" data-filter="all">Toutes</button></div>
     </div>
     <div class="filter-group">
+      <div class="filter-label">Année académique</div>
+      <div class="filter-chips" id="yearFilters"><button class="chip active" data-filter="all">Toutes</button></div>
+    </div>
+    <div class="filter-group">
       <div class="filter-label">Spécialisation</div>
       <div class="filter-chips" id="specFilters"><button class="chip active" data-filter="all">Toutes</button></div>
     </div>
@@ -293,13 +298,13 @@ async function loadData() {
   } catch (e) {
     console.error('Erreur chargement:', e);
     destinations = [
-      { student:"Paul C", promo:2025, type:"stage", country:"France", city:"Lyon", lat:45.764, lng:4.8357, org:"Strate", specialization:"Design produit", linkedin:"", website:"", campus:"Lyon" },
-      { student:"Léa Capaloux", promo:2024, type:"stage", country:"Japon", city:"Tokyo", lat:35.6762, lng:139.6503, org:"ULTRA LAB Design", specialization:"Design industriel", linkedin:"", website:"", campus:"Lyon" },
-      { student:"Baptiste Romarion", promo:2026, type:"exchange", country:"Suède", city:"Stockholm", lat:59.3293, lng:18.0686, org:"Konstfack", specialization:"Design interaction", linkedin:"", website:"", campus:"Paris" },
+      { student:"Paul C", promo:2025, type:"stage", country:"France", city:"Lyon", lat:45.764, lng:4.8357, org:"Strate", specialization:"Design produit", linkedin:"", website:"", campus:"Lyon", academicYear:"2024-2025" },
+      { student:"Léa Capaloux", promo:2024, type:"stage", country:"Japon", city:"Tokyo", lat:35.6762, lng:139.6503, org:"ULTRA LAB Design", specialization:"Design industriel", linkedin:"", website:"", campus:"Lyon", academicYear:"2023-2024" },
+      { student:"Baptiste Romarion", promo:2026, type:"exchange", country:"Suède", city:"Stockholm", lat:59.3293, lng:18.0686, org:"Konstfack", specialization:"Design interaction", linkedin:"", website:"", campus:"Paris", academicYear:"2024-2025" },
     ];
   }
   destinations.forEach((d,i) => d._origIndex = i);
-  buildCampusFilters(); buildPromoFilters(); buildSpecFilters(); createMarkers(); updateView();
+  buildCampusFilters(); buildPromoFilters(); buildYearFilters(); buildSpecFilters(); createMarkers(); updateView();
 }
 
 function parseCSV(csv) {
@@ -326,6 +331,7 @@ function parseCSV(csv) {
       linkedin: obj.linkedin||obj['linkedin url']||'',
       website: obj.website||obj['url org']||obj['site']||obj['site web']||obj['url']||'',
       campus: obj.campus||'',
+      academicYear: obj['année académique']||obj['annee academique']||obj['academic year']||obj['année_académique']||obj['annee_academique']||'',
     };
   }).filter(d => !isNaN(d.lat) && !isNaN(d.lng));
 }
@@ -365,7 +371,7 @@ const map = new mapboxgl.Map({ container:'map', style:'mapbox://styles/mapbox/da
 map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'bottom-right');
 map.on('style.load',()=>{ map.setFog({color:'#0E0E10','high-color':'#161619','horizon-blend':0.04,'space-color':'#0E0E10','star-intensity':0.3}); });
 
-let activeTypes=new Set(), activePromos=new Set(), activeSpecs=new Set(), activeCampus=new Set(), currentPopup=null;
+let activeTypes=new Set(), activePromos=new Set(), activeSpecs=new Set(), activeCampus=new Set(), activeYears=new Set(), currentPopup=null;
 
 function setupMultiFilter(id, set, parse) {
   document.getElementById(id).addEventListener('click', e => {
@@ -386,6 +392,7 @@ function init(){
   setupMultiFilter('campusFilters',activeCampus);
   setupMultiFilter('typeFilters',activeTypes);
   setupMultiFilter('promoFilters',activePromos,v=>parseInt(v));
+  setupMultiFilter('yearFilters',activeYears);
   setupMultiFilter('specFilters',activeSpecs);
   document.getElementById('toggleLeft').addEventListener('click',()=>{ document.getElementById('panelLeft').classList.toggle('collapsed'); updateMapPadding(); });
   document.getElementById('toggleRight').addEventListener('click',()=>{ document.getElementById('panelRight').classList.toggle('collapsed'); updateMapPadding(); });
@@ -405,7 +412,7 @@ function initSearch() {
     clearBtn.style.display = q ? 'flex' : 'none';
     if (q.length < 2) { resultsEl.classList.remove('visible'); return; }
     const matches = destinations.filter(d => {
-      return [d.student, d.city, d.country, d.org, d.specialization, d.campus, String(d.promo)]
+      return [d.student, d.city, d.country, d.org, d.specialization, d.campus, d.academicYear, String(d.promo)]
         .some(f => (f||'').toLowerCase().includes(q));
     }).slice(0, 12);
 
@@ -480,6 +487,13 @@ function buildSpecFilters(){
     const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch);
   });
 }
+function buildYearFilters(){
+  const c=document.getElementById('yearFilters');
+  c.querySelectorAll('.chip:not([data-filter="all"])').forEach(e=>e.remove());
+  [...new Set(destinations.map(d=>d.academicYear).filter(s=>s&&s.trim()))].sort((a,b)=>b.localeCompare(a)).forEach(s=>{
+    const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch);
+  });
+}
 
 const TC={stage:'#5EBD8C',exchange:'#6FA3EF',alumni:'#A78BFA'};
 function toGJ(data){return{type:'FeatureCollection',features:data.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:[d.lng,d.lat]},properties:{type:d.type,_origIndex:d._origIndex}}))};}
@@ -515,14 +529,21 @@ function openPopup(d){
 }
 
 function popupHTML(d) {
+  const subParts = [];
+  if(d.promo) subParts.push('Promo '+d.promo);
+  if(d.campus) subParts.push('Strate '+d.campus);
+  const yearLabel = d.academicYear ? ' — '+d.academicYear : '';
   return `
-    <div class="popup-type ${d.type}">${getTypeLabel(d.type)} — Promo ${d.promo}${d.campus?' — Strate '+d.campus:''}</div>
+    <div class="popup-type ${d.type}">${getTypeLabel(d.type)}${yearLabel}</div>
+    ${subParts.length?`<div class="popup-subline">${subParts.join(' · ')}</div>`:''}
     <div class="popup-student">${d.student}</div>
     ${d.linkedin?`<a class="popup-link" href="${d.linkedin}" target="_blank" rel="noopener">Profil LinkedIn ↗</a>`:''}
-    <div class="popup-org">${d.org}</div>
-    ${d.specialization?`<div class="popup-specialization">${d.specialization}</div>`:''}
-    ${d.website?`<a class="popup-link" href="${d.website}" target="_blank" rel="noopener">Site web ↗</a>`:''}
-    <div class="popup-meta"><div class="popup-location">${d.city}, ${d.country}</div></div>
+    <div class="popup-section">
+      <div class="popup-org">${d.org}</div>
+      ${d.specialization?`<div class="popup-specialization">${d.specialization}</div>`:''}
+      ${d.website?`<a class="popup-link" href="${d.website}" target="_blank" rel="noopener">Site web ↗</a>`:''}
+    </div>
+    <div class="popup-section"><div class="popup-location">${d.city}, ${d.country}</div></div>
   `;
 }
 
@@ -564,7 +585,7 @@ function openClusterPopup(items, coords) {
 
 function updateView(){
   const filtered=destinations.filter(d=>{
-    return (activeCampus.size===0||activeCampus.has(d.campus))&&(activeTypes.size===0||activeTypes.has(d.type))&&(activePromos.size===0||activePromos.has(d.promo))&&(activeSpecs.size===0||activeSpecs.has(d.specialization));
+    return (activeCampus.size===0||activeCampus.has(d.campus))&&(activeTypes.size===0||activeTypes.has(d.type))&&(activePromos.size===0||activePromos.has(d.promo))&&(activeYears.size===0||activeYears.has(d.academicYear))&&(activeSpecs.size===0||activeSpecs.has(d.specialization));
   });
   const src=map.getSource('destinations'); if(src)src.setData(toGJ(filtered));
 
