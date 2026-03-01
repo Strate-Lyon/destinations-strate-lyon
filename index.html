@@ -753,10 +753,10 @@ let presRotationRAF = null;
 let presZoomTimer = null;
 let presZooming = false;
 let presShuffled = [], presIndex = 0;
-const PRES_ROTATE_SPEED = 0.012;    // degrees per frame (~0.72°/s at 60fps)
-const PRES_ZOOM_INTERVAL = 7000;    // zoom on a popup every 7s
+const PRES_ROTATE_SPEED = 0.024;    // degrees per frame (~1.44°/s at 60fps)
+const PRES_ZOOM_INTERVAL = 6000;    // zoom on a popup every 6s
 const PRES_ZOOM_DURATION = 3000;    // fly-to duration
-const PRES_ZOOM_HOLD = 3000;        // hold on popup before pulling back
+const PRES_ZOOM_HOLD = 2000;        // hold on popup before pulling back
 const PRES_ZOOM_LEVEL = 4.5;
 const PRES_CRUISE_ZOOM = 1.8;
 const PRES_CRUISE_PITCH = 0;
