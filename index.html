@@ -218,6 +218,67 @@
   .search-result-match { color: var(--accent-title); font-weight: 500; }
   .search-no-result { padding: 12px 16px; font-size: 12px; color: var(--text-muted); }
 
+  /* ── Presentation Mode ────────────────── */
+  body.presentation .panel-base,
+  body.presentation .toggle-btn,
+  body.presentation .top-bar-wrap,
+  body.presentation .mapboxgl-ctrl-bottom-left,
+  body.presentation .mapboxgl-ctrl-bottom-right { opacity: 0; pointer-events: none; transition: opacity 0.6s ease; }
+  body.presentation .pres-overlay { opacity: 1; pointer-events: auto; }
+
+  .pres-overlay {
+    position: absolute; inset: 0; z-index: 100; opacity: 0; pointer-events: none;
+    transition: opacity 0.6s ease; display: flex; flex-direction: column;
+  }
+  .pres-top-bar {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 101;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 28px;
+    background: linear-gradient(to bottom, rgba(14,14,16,0.7) 0%, transparent 100%);
+  }
+  body.light .pres-top-bar { background: linear-gradient(to bottom, rgba(245,243,239,0.7) 0%, transparent 100%); }
+  .pres-title {
+    font-family: var(--font-display); font-size: 22px; font-weight: 400; color: var(--text-primary);
+  }
+  .pres-title em { font-style: italic; color: var(--accent-title); }
+  .pres-controls { display: flex; align-items: center; gap: 8px; }
+  .pres-btn {
+    height: 38px; padding: 0 16px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08);
+    color: var(--text-secondary); font-family: var(--font-body); font-size: 12px; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    transition: all 0.2s; backdrop-filter: blur(20px);
+  }
+  body.light .pres-btn { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.05); }
+  .pres-btn:hover { background: rgba(255,255,255,0.15); color: var(--text-primary); }
+  body.light .pres-btn:hover { background: rgba(0,0,0,0.1); color: var(--text-primary); }
+  .pres-btn.active { border-color: var(--accent-title); color: var(--accent-title); }
+
+  .pres-bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 101;
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    padding: 20px 28px;
+    background: linear-gradient(to top, rgba(14,14,16,0.7) 0%, transparent 100%);
+  }
+  body.light .pres-bottom-bar { background: linear-gradient(to top, rgba(245,243,239,0.7) 0%, transparent 100%); }
+  .pres-counter {
+    font-family: var(--font-display); font-size: 16px; color: var(--text-secondary);
+    min-width: 80px; text-align: center;
+  }
+  .pres-progress {
+    flex: 1; max-width: 400px; height: 3px; background: rgba(255,255,255,0.1);
+    border-radius: 2px; overflow: hidden;
+  }
+  body.light .pres-progress { background: rgba(0,0,0,0.1); }
+  .pres-progress-fill {
+    height: 100%; background: var(--accent-title); border-radius: 2px;
+    transition: width 0.8s ease;
+  }
+  .pres-kbd {
+    font-size: 9px; color: var(--text-muted); margin-left: 2px;
+    opacity: 0.6;
+  }
+
   /* ── Responsive ─────────────────────────── */
   @media (max-width: 900px) { .panel-right, #toggleRight { display: none; } .top-bar-wrap { left: 50%; transform: translateX(-50%); width: min(540px, calc(100vw - var(--panel-left-w) - 100px)); } }
   @media (max-width: 768px) {
@@ -226,6 +287,7 @@
     #toggleLeft { display: none; }
     .top-bar-wrap { left: 20px; right: 20px; width: auto; transform: none; top: 16px; }
     .voyager-btn span { display: none; }
+    .voyager-btn .pres-kbd { display: none; }
     .voyager-btn { padding: 0 12px; }
   }
 
@@ -246,6 +308,7 @@
   <button class="voyager-btn" id="voyagerBtn">
     <svg class="voyager-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36z"/></svg>
     <span>Voyager</span>
+    <span class="pres-kbd">espace</span>
   </button>
   <div class="search-wrap" id="searchWrap">
     <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -284,6 +347,9 @@
       <span>Mode clair</span>
     </div>
     <div class="school-banner">Strate, École de Design — Lyon</div>
+    <button class="reset-btn visible" id="presStartBtn" style="display:block; margin:0; width:100%; text-align:center; color:var(--text-secondary); border-color:var(--border);">
+      ▶ Mode Présentation
+    </button>
   </div>
 </div>
 <button class="toggle-btn" id="toggleLeft">☰</button>
@@ -297,6 +363,34 @@
   <div class="destination-list" id="destinationList"></div>
 </div>
 <button class="toggle-btn" id="toggleRight">☰</button>
+
+<!-- Presentation Mode Overlay -->
+<div class="pres-overlay" id="presOverlay">
+  <div class="pres-top-bar">
+    <div class="pres-title">Cartographie des <em>Stratos</em></div>
+    <div class="pres-controls">
+      <button class="pres-btn" id="presPlayPause" title="Lecture / Pause">
+        <svg id="presPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <svg id="presPlayIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none"><polygon points="5,3 19,12 5,21"/></svg>
+        <span id="presPlayLabel">Pause</span>
+      </button>
+      <button class="pres-btn" id="presSpeed" title="Vitesse">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="presSpeedLabel">8s</span>
+      </button>
+      <button class="pres-btn" id="presExit" title="Quitter">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Quitter
+      </button>
+    </div>
+  </div>
+  <div class="pres-bottom-bar">
+    <button class="pres-btn" id="presPrev" title="Précédent">‹</button>
+    <div class="pres-progress"><div class="pres-progress-fill" id="presProgressFill"></div></div>
+    <span class="pres-counter" id="presCounter">1 / 1</span>
+    <button class="pres-btn" id="presNext" title="Suivant">›</button>
+  </div>
+</div>
 
 <script>
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-0YFn6d_UV6M6IPHTgm_Twik3wWjmXI1pAH3lfg3ACTn_mHc9Nr7EQP0X9tDQCAT6EVVKnSwu-VyR/pub?gid=0&single=true&output=csv';
@@ -427,10 +521,15 @@ function init(){
   document.getElementById('toggleRight').addEventListener('click',()=>{ document.getElementById('panelRight').classList.toggle('collapsed'); updateMapPadding(); });
   document.getElementById('resetFilters').addEventListener('click', resetAllFilters);
   document.getElementById('voyagerBtn').addEventListener('click', () => {
-    if (destinations.length === 0) return;
-    const d = destinations[Math.floor(Math.random() * destinations.length)];
-    openPopup(d);
+    triggerVoyager();
   });
+  // Presentation mode
+  document.getElementById('presStartBtn').addEventListener('click', presStart);
+  document.getElementById('presExit').addEventListener('click', presStop);
+  document.getElementById('presPlayPause').addEventListener('click', presTogglePlay);
+  document.getElementById('presNext').addEventListener('click', presNext);
+  document.getElementById('presPrev').addEventListener('click', presPrev);
+  document.getElementById('presSpeed').addEventListener('click', presCycleSpeed);
   document.getElementById('themeToggle').addEventListener('click', () => {
     document.body.classList.toggle('light');
     const isLight = document.body.classList.contains('light');
@@ -664,6 +763,116 @@ function updateView(){
     });
     list.appendChild(grp);
   });
+}
+
+/* ── Voyager: spacebar shortcut ────────── */
+function triggerVoyager() {
+  if (destinations.length === 0) return;
+  const d = destinations[Math.floor(Math.random() * destinations.length)];
+  openPopup(d);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !e.target.matches('input, textarea, select, [contenteditable]')) {
+    e.preventDefault();
+    if (document.body.classList.contains('presentation')) {
+      presTogglePlay();
+    } else {
+      triggerVoyager();
+      // Visual feedback on button
+      const btn = document.getElementById('voyagerBtn');
+      btn.style.borderColor = 'var(--accent-title)';
+      btn.style.color = 'var(--accent-title)';
+      setTimeout(() => { btn.style.borderColor = ''; btn.style.color = ''; }, 300);
+    }
+  }
+  // Arrow keys in presentation mode
+  if (document.body.classList.contains('presentation')) {
+    if (e.code === 'ArrowRight') presNext();
+    if (e.code === 'ArrowLeft') presPrev();
+    if (e.code === 'Escape') presStop();
+  }
+});
+
+/* ── Presentation Mode ────────────────── */
+let presActive = false, presPlaying = false, presIndex = 0, presTimer = null;
+let presShuffled = [];
+let presSpeeds = [5000, 8000, 12000];
+let presSpeedIdx = 1; // default 8s
+
+function presStart() {
+  if (destinations.length === 0) return;
+  // Shuffle destinations
+  presShuffled = [...destinations].sort(() => Math.random() - 0.5);
+  presIndex = 0;
+  presActive = true;
+  presPlaying = true;
+  presSpeedIdx = 1;
+  document.body.classList.add('presentation');
+  document.getElementById('presSpeedLabel').textContent = (presSpeeds[presSpeedIdx]/1000) + 's';
+  presUpdateUI();
+  presShowCurrent();
+  presStartTimer();
+}
+
+function presStop() {
+  presActive = false;
+  presPlaying = false;
+  clearInterval(presTimer);
+  document.body.classList.remove('presentation');
+  if (currentPopup) currentPopup.remove();
+  // Reset map view
+  map.flyTo({ center: [10, 30], zoom: 1.8, duration: 1500 });
+}
+
+function presShowCurrent() {
+  if (!presActive || presShuffled.length === 0) return;
+  const d = presShuffled[presIndex];
+  openPopup(d);
+  presUpdateUI();
+}
+
+function presUpdateUI() {
+  const total = presShuffled.length;
+  document.getElementById('presCounter').textContent = `${presIndex + 1} / ${total}`;
+  document.getElementById('presProgressFill').style.width = `${((presIndex + 1) / total) * 100}%`;
+  // Play/pause icons
+  document.getElementById('presPauseIcon').style.display = presPlaying ? '' : 'none';
+  document.getElementById('presPlayIcon').style.display = presPlaying ? 'none' : '';
+  document.getElementById('presPlayLabel').textContent = presPlaying ? 'Pause' : 'Lecture';
+}
+
+function presNext() {
+  presIndex = (presIndex + 1) % presShuffled.length;
+  presShowCurrent();
+  if (presPlaying) presRestartTimer();
+}
+
+function presPrev() {
+  presIndex = (presIndex - 1 + presShuffled.length) % presShuffled.length;
+  presShowCurrent();
+  if (presPlaying) presRestartTimer();
+}
+
+function presTogglePlay() {
+  presPlaying = !presPlaying;
+  if (presPlaying) presStartTimer(); else clearInterval(presTimer);
+  presUpdateUI();
+}
+
+function presStartTimer() {
+  clearInterval(presTimer);
+  presTimer = setInterval(() => presNext(), presSpeeds[presSpeedIdx]);
+}
+
+function presRestartTimer() {
+  if (presPlaying) presStartTimer();
+}
+
+function presCycleSpeed() {
+  presSpeedIdx = (presSpeedIdx + 1) % presSpeeds.length;
+  document.getElementById('presSpeedLabel').textContent = (presSpeeds[presSpeedIdx]/1000) + 's';
+  if (presPlaying) presRestartTimer();
 }
 
 map.on('load',()=>{ init(); loadData(); updateMapPadding(); window.addEventListener('resize',updateMapPadding); });
