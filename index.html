@@ -19,7 +19,11 @@
     --text-muted: #5A5A65;
     --accent-stage: #5EBD8C;
     --accent-exchange: #6FA3EF;
-    --accent-alumni: #A78BFA;
+    --accent-voyage: #E891B2;
+    --accent-alumni: #E8A85F;
+    --accent-diplome: #A78BFA;
+    --accent-pepiniere: #F27A7A;
+    --accent-stage-diplomant: #4ECDC4;
     --accent-title: #E8A85F;
     --font-display: 'Instrument Serif', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
@@ -74,13 +78,17 @@
   .panel-header h1 em { font-style: italic; color: var(--accent-title); }
   .panel-header .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 300; }
 
-  .stats-row { display: flex; gap: 6px; padding: 14px 24px 0; }
-  .stat-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px; transition: background 0.3s, border-color 0.3s; }
-  .stat-card .number { font-family: var(--font-display); font-size: 22px; line-height: 1; margin-bottom: 3px; }
-  .stat-card .label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+  .stats-row { display: flex; gap: 6px; padding: 6px 24px 0; }
+  .stat-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: baseline; gap: 6px; transition: background 0.3s, border-color 0.3s; }
+  .stat-card .number { font-family: var(--font-display); font-size: 28px; line-height: 1; }
+  .stat-card .label { font-size: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; white-space: nowrap; }
   .stat-card.stages .number { color: var(--accent-stage); }
   .stat-card.exchanges .number { color: var(--accent-exchange); }
+  .stat-card.voyage .number { color: var(--accent-voyage); }
   .stat-card.alumni .number { color: var(--accent-alumni); }
+  .stat-card.diplome .number { color: var(--accent-diplome); }
+  .stat-card.pepiniere .number { color: var(--accent-pepiniere); }
+  .stat-card.stage-diplomant .number { color: var(--accent-stage-diplomant); }
 
   .filters { padding: 16px 24px 12px; }
   .filter-group { margin-bottom: 12px; }
@@ -91,7 +99,11 @@
   .chip.active { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); font-weight: 500; }
   .chip.active.stage-chip { background: var(--accent-stage); border-color: var(--accent-stage); color: #fff; }
   .chip.active.exchange-chip { background: var(--accent-exchange); border-color: var(--accent-exchange); color: #fff; }
+  .chip.active.voyage-chip { background: var(--accent-voyage); border-color: var(--accent-voyage); color: #fff; }
   .chip.active.alumni-chip { background: var(--accent-alumni); border-color: var(--accent-alumni); color: #fff; }
+  .chip.active.diplome-chip { background: var(--accent-diplome); border-color: var(--accent-diplome); color: #fff; }
+  .chip.active.pepiniere-chip { background: var(--accent-pepiniere); border-color: var(--accent-pepiniere); color: #fff; }
+  .chip.active.stage-diplomant-chip { background: var(--accent-stage-diplomant); border-color: var(--accent-stage-diplomant); color: #fff; }
 
   /* ── Reset Button ──────────────────────── */
   .reset-btn {
@@ -153,7 +165,11 @@
   .dest-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
   .dest-dot.stage { background: var(--accent-stage); }
   .dest-dot.exchange { background: var(--accent-exchange); }
+  .dest-dot.voyage { background: var(--accent-voyage); }
   .dest-dot.alumni { background: var(--accent-alumni); }
+  .dest-dot.diplome { background: var(--accent-diplome); }
+  .dest-dot.pepiniere { background: var(--accent-pepiniere); }
+  .dest-dot.stage-diplomant { background: var(--accent-stage-diplomant); }
   .dest-info { flex: 1; min-width: 0; }
   .dest-city { font-size: 13px; font-weight: 500; margin-bottom: 1px; }
   .dest-student { font-size: 12px; color: var(--text-secondary); font-weight: 400; margin-top: 1px; }
@@ -167,7 +183,11 @@
   .popup-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; margin-bottom: 2px; }
   .popup-type.stage { color: var(--accent-stage); }
   .popup-type.exchange { color: var(--accent-exchange); }
+  .popup-type.voyage { color: var(--accent-voyage); }
   .popup-type.alumni { color: var(--accent-alumni); }
+  .popup-type.diplome { color: var(--accent-diplome); }
+  .popup-type.pepiniere { color: var(--accent-pepiniere); }
+  .popup-type.stage-diplomant { color: var(--accent-stage-diplomant); }
   .popup-subline { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; font-weight: 400; }
   .popup-student { font-family: var(--font-display); font-size: 24px; line-height: 1.15; margin-bottom: 4px; }
   .popup-link { display: inline-block; font-size: 11.5px; color: var(--text-muted); text-decoration: none; margin-bottom: 4px; transition: color 0.15s; }
@@ -292,21 +312,26 @@
 <div class="panel-base panel-left" id="panelLeft">
   <div class="panel-header">
     <h1>Cartographie des <em>Stratos</em></h1>
-    <p class="subtitle">Stages, échanges académiques & alumni</p>
+    <p class="subtitle">Stages, échanges, voyages, diplômes, pépinières & alumni</p>
   </div>
-  <div class="stats-row">
+  <div class="stats-row" style="padding-top:14px">
     <div class="stat-card stages"><div class="number" id="countStages">0</div><div class="label">Stages</div></div>
     <div class="stat-card exchanges"><div class="number" id="countExchanges">0</div><div class="label">Échanges</div></div>
-    <div class="stat-card alumni"><div class="number" id="countAlumni">0</div><div class="label">Alumni</div></div>
+    <div class="stat-card voyage"><div class="number" id="countVoyage">0</div><div class="label">Voyages</div></div>
   </div>
   <div class="stats-row" style="padding-top:0">
+    <div class="stat-card diplome"><div class="number" id="countDiplome">0</div><div class="label">Doubles diplômes</div></div>
+    <div class="stat-card pepiniere"><div class="number" id="countPepiniere">0</div><div class="label">Pépinières</div></div>
+    <div class="stat-card stage-diplomant"><div class="number" id="countStageDiplomant">0</div><div class="label">Stages diplômants</div></div>
+  </div>
+  <div class="stats-row" style="padding-top:0">
+    <div class="stat-card alumni"><div class="number" id="countAlumni">0</div><div class="label">Alumni</div></div>
     <div class="stat-card"><div class="number" id="countStratos">0</div><div class="label">Stratos</div></div>
-    <div class="stat-card"><div class="number" id="countCities">0</div><div class="label">Villes</div></div>
-    <div class="stat-card"><div class="number" id="countCountries">0</div><div class="label">Pays</div></div>
+    <div class="stat-card"><div class="number" id="countCitiesCountries">0</div><div class="label">Villes / Pays</div></div>
   </div>
   <div class="filters">
     <div class="filter-group"><div class="filter-label">Campus</div><div class="filter-chips" id="campusFilters"><button class="chip active" data-filter="all">Tous</button></div></div>
-    <div class="filter-group"><div class="filter-label">Type</div><div class="filter-chips" id="typeFilters"><button class="chip active" data-filter="all">Tous</button><button class="chip stage-chip" data-filter="stage">Stages</button><button class="chip exchange-chip" data-filter="exchange">Échanges</button><button class="chip alumni-chip" data-filter="alumni">Alumni</button></div></div>
+    <div class="filter-group"><div class="filter-label">Type</div><div class="filter-chips" id="typeFilters"><button class="chip active" data-filter="all">Tous</button><button class="chip stage-chip" data-filter="stage">Stages</button><button class="chip exchange-chip" data-filter="exchange">Échanges</button><button class="chip voyage-chip" data-filter="voyage">Voyages</button><button class="chip diplome-chip" data-filter="diplome">Doubles diplômes</button><button class="chip pepiniere-chip" data-filter="pepiniere">Pépinières</button><button class="chip stage-diplomant-chip" data-filter="stage-diplomant">Stages diplômants</button><button class="chip alumni-chip" data-filter="alumni">Alumni</button></div></div>
     <div class="filter-group"><div class="filter-label">Promotion</div><div class="filter-chips" id="promoFilters"><button class="chip active" data-filter="all">Toutes</button></div></div>
     <div class="filter-group"><div class="filter-label">Année académique</div><div class="filter-chips" id="yearFilters"><button class="chip active" data-filter="all">Toutes</button></div></div>
     <div class="filter-group"><div class="filter-label">Spécialisation</div><div class="filter-chips" id="specFilters"><button class="chip active" data-filter="all">Toutes</button></div></div>
@@ -379,7 +404,13 @@ function parseCSV(csv) {
     values.push(cur.trim());
     const obj = {}; headers.forEach((h,i) => obj[h] = values[i]||'');
     const raw = (obj.type||obj.statut||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    let type = 'stage'; if (raw.includes('change')) type='exchange'; else if (raw.includes('alumni')) type='alumni';
+    let type = 'stage';
+    if (raw.includes('pepiniere') || raw.includes('pepinire')) type='pepiniere';
+    else if (raw.includes('stage') && raw.includes('diplom')) type='stage-diplomant';
+    else if (raw.includes('double') || (raw.includes('diplome') && !raw.includes('stage'))) type='diplome';
+    else if (raw.includes('voyage')) type='voyage';
+    else if (raw.includes('change') || raw.includes('echange')) type='exchange';
+    else if (raw.includes('alumni')) type='alumni';
     const prenom = obj['prénom']||obj.prenom||obj.firstname||obj['first name']||'';
     const nom = obj.nom||obj.name||obj.lastname||obj['last name']||'';
     const studentFallback = obj.student||obj.etudiant||obj['étudiant']||'';
@@ -558,11 +589,11 @@ function buildDynFilter(id, vals, reverse){
   u.forEach(s=>{ const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch); });
 }
 
-const TC={stage:'#5EBD8C',exchange:'#6FA3EF',alumni:'#A78BFA'};
+const TC={stage:'#5EBD8C',exchange:'#6FA3EF',voyage:'#E891B2',diplome:'#A78BFA',pepiniere:'#F27A7A','stage-diplomant':'#4ECDC4',alumni:'#E8A85F'};
 function toGJ(data){return{type:'FeatureCollection',features:data.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:[d.lng,d.lat]},properties:{type:d.type,_origIndex:d._origIndex}}))};}
 
 function createMarkers(){
-  ['highlight-pulse','glow-stage','glow-exchange','glow-alumni','unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
+  Object.keys(TC).flatMap(t=>['glow-'+t,'unclustered-'+t]).concat(['highlight-pulse']).forEach(id=>{if(map.getLayer(id))map.removeLayer(id);});
   if(map.getSource('destinations'))map.removeSource('destinations');
   if(map.getSource('highlight'))map.removeSource('highlight');
 
@@ -570,7 +601,7 @@ function createMarkers(){
   // Highlight source for hover pulse
   map.addSource('highlight',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
 
-  ['stage','exchange','alumni'].forEach(t=>{
+  Object.keys(TC).forEach(t=>{
     map.addLayer({id:`glow-${t}`,type:'circle',source:'destinations',filter:['==',['get','type'],t],paint:{'circle-color':TC[t],'circle-radius':14,'circle-blur':1,'circle-opacity':0.3}});
     map.addLayer({id:`unclustered-${t}`,type:'circle',source:'destinations',filter:['==',['get','type'],t],paint:{'circle-color':TC[t],'circle-radius':6,'circle-stroke-width':0,'circle-opacity':0.95}});
   });
@@ -580,7 +611,7 @@ function createMarkers(){
     'circle-color':['get','color'],'circle-radius':18,'circle-blur':0.6,'circle-opacity':0.5
   }});
 
-  ['unclustered-stage','unclustered-exchange','unclustered-alumni'].forEach(id=>{
+  Object.keys(TC).map(t=>'unclustered-'+t).forEach(id=>{
     map.on('click',id,e=>{const d=destinations[e.features[0].properties._origIndex];if(d)openPopup(d);});
     map.on('mouseenter',id,()=>{map.getCanvas().style.cursor='pointer';});
     map.on('mouseleave',id,()=>{map.getCanvas().style.cursor='';});
@@ -602,7 +633,7 @@ function clearHighlight() {
   if(src) src.setData({type:'FeatureCollection',features:[]});
 }
 
-function getTypeLabel(t){return t==='exchange'?'Échange':t==='alumni'?'Alumni':'Stage';}
+function getTypeLabel(t){const L={stage:'Stage',exchange:'Échange académique',voyage:"Voyage d'études",diplome:'Double diplôme',pepiniere:'Pépinière','stage-diplomant':'Stage diplômant',alumni:'Alumni'};return L[t]||t;}
 
 function openPopup(d){
   if(currentPopup)currentPopup.remove();
@@ -651,13 +682,16 @@ function updateView(){
 
   document.getElementById('countStages').textContent=filtered.filter(d=>d.type==='stage').length;
   document.getElementById('countExchanges').textContent=filtered.filter(d=>d.type==='exchange').length;
-  document.getElementById('countAlumni').textContent=filtered.filter(d=>d.type==='alumni').length;
+  document.getElementById('countVoyage').textContent=filtered.filter(d=>d.type==='voyage').length;
+  document.getElementById('countDiplome').textContent=filtered.filter(d=>d.type==='diplome').length;
+  document.getElementById('countPepiniere').textContent=filtered.filter(d=>d.type==='pepiniere').length;
+  document.getElementById('countStageDiplomant').textContent=filtered.filter(d=>d.type==='stage-diplomant').length;
   const uStudents=new Set(filtered.map(d=>d.student).filter(s=>s));
   const uCities=new Set(filtered.map(d=>`${d.city}-${d.country}`));
   const uCountries=new Set(filtered.map(d=>d.country));
+  document.getElementById('countAlumni').textContent=filtered.filter(d=>d.type==='alumni').length;
   document.getElementById('countStratos').textContent=uStudents.size;
-  document.getElementById('countCities').textContent=uCities.size;
-  document.getElementById('countCountries').textContent=uCountries.size;
+  document.getElementById('countCitiesCountries').textContent=uCities.size+' / '+uCountries.size;
   document.getElementById('listCount').textContent=`${uCities.size} destination${uCities.size>1?'s':''}`;
   document.getElementById('listEntries').textContent=`${filtered.length} entrée${filtered.length>1?'s':''}`;
 
