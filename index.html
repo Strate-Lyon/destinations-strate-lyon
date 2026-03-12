@@ -24,6 +24,7 @@
     --accent-diplome: #A78BFA;
     --accent-pepiniere: #F27A7A;
     --accent-stage-diplomant: #4ECDC4;
+    --accent-annuaire: #38BDF8;
     --accent-title: #E8A85F;
     --font-display: 'Instrument Serif', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
@@ -78,10 +79,10 @@
   .panel-header h1 em { font-style: italic; color: var(--accent-title); }
   .panel-header .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 300; }
 
-  .stats-row { display: flex; gap: 6px; padding: 0 24px; margin-top: 6px; }
-  .stat-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px; text-align: center; transition: background 0.3s, border-color 0.3s; }
-  .stat-card .number { font-family: var(--font-display); font-size: 26px; line-height: 1; margin-bottom: 4px; }
-  .stat-card .label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; line-height: 1.3; }
+  .stats-row { display: flex; gap: 6px; padding: 6px 24px 0; }
+  .stat-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: baseline; gap: 6px; transition: background 0.3s, border-color 0.3s; }
+  .stat-card .number { font-family: var(--font-display); font-size: 28px; line-height: 1; }
+  .stat-card .label { font-size: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; white-space: nowrap; }
   .stat-card.stages .number { color: var(--accent-stage); }
   .stat-card.exchanges .number { color: var(--accent-exchange); }
   .stat-card.voyage .number { color: var(--accent-voyage); }
@@ -89,6 +90,7 @@
   .stat-card.diplome .number { color: var(--accent-diplome); }
   .stat-card.pepiniere .number { color: var(--accent-pepiniere); }
   .stat-card.stage-diplomant .number { color: var(--accent-stage-diplomant); }
+  .stat-card.annuaire .number { color: var(--accent-annuaire); }
 
   .filters { padding: 16px 24px 12px; }
   .filter-group { margin-bottom: 12px; }
@@ -104,6 +106,7 @@
   .chip.active.diplome-chip { background: var(--accent-diplome); border-color: var(--accent-diplome); color: #fff; }
   .chip.active.pepiniere-chip { background: var(--accent-pepiniere); border-color: var(--accent-pepiniere); color: #fff; }
   .chip.active.stage-diplomant-chip { background: var(--accent-stage-diplomant); border-color: var(--accent-stage-diplomant); color: #fff; }
+  .chip.active.annuaire-chip { background: var(--accent-annuaire); border-color: var(--accent-annuaire); color: #fff; }
 
   /* ── Reset Button ──────────────────────── */
   .reset-btn {
@@ -170,6 +173,7 @@
   .dest-dot.diplome { background: var(--accent-diplome); }
   .dest-dot.pepiniere { background: var(--accent-pepiniere); }
   .dest-dot.stage-diplomant { background: var(--accent-stage-diplomant); }
+  .dest-dot.annuaire { background: var(--accent-annuaire); }
   .dest-info { flex: 1; min-width: 0; }
   .dest-city { font-size: 13px; font-weight: 500; margin-bottom: 1px; }
   .dest-student { font-size: 12px; color: var(--text-secondary); font-weight: 400; margin-top: 1px; }
@@ -188,6 +192,7 @@
   .popup-type.diplome { color: var(--accent-diplome); }
   .popup-type.pepiniere { color: var(--accent-pepiniere); }
   .popup-type.stage-diplomant { color: var(--accent-stage-diplomant); }
+  .popup-type.annuaire { color: var(--accent-annuaire); }
   .popup-subline { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; font-weight: 400; }
   .popup-student { font-family: var(--font-display); font-size: 24px; line-height: 1.15; margin-bottom: 4px; }
   .popup-link { display: inline-block; font-size: 11.5px; color: var(--text-muted); text-decoration: none; margin-bottom: 4px; transition: color 0.15s; }
@@ -273,6 +278,17 @@
   body.light .pres-btn:hover { background: rgba(0,0,0,0.1); color: var(--text-primary); }
   .pres-btn.active { border-color: var(--accent-title); color: var(--accent-title); }
 
+  /* ── View Mode Switcher ────────────────── */
+  .view-switcher { display: flex; gap: 4px; padding: 14px 24px 0; }
+  .view-btn {
+    flex: 1; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted); font-size: 11px; font-weight: 500;
+    font-family: var(--font-body); cursor: pointer; transition: all 0.2s;
+    text-align: center; letter-spacing: 0.02em;
+  }
+  .view-btn:hover { border-color: var(--text-secondary); color: var(--text-secondary); }
+  .view-btn.active { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+
   /* ── Responsive ─────────────────────────── */
   @media (max-width: 900px) { .panel-right, #toggleRight { display: none; } .top-bar-wrap { left: 50%; transform: translateX(-50%); width: min(486px, calc(100vw - var(--panel-left-w) - 100px)); } }
   @media (max-width: 768px) {
@@ -314,27 +330,32 @@
     <h1>Cartographie des <em>Stratos</em></h1>
     <p class="subtitle">Stages, échanges, voyages, diplômes, pépinières & alumni</p>
   </div>
-  <div class="stats-row" style="margin-top:14px">
+  <div class="view-switcher" id="viewSwitcher">
+    <button class="view-btn active" data-view="all">Tout</button>
+    <button class="view-btn" data-view="experiences">Expériences</button>
+    <button class="view-btn" data-view="annuaire">Annuaire</button>
+  </div>
+  <div class="stats-row" style="padding-top:14px">
     <div class="stat-card stages"><div class="number" id="countStages">0</div><div class="label">Stages</div></div>
     <div class="stat-card exchanges"><div class="number" id="countExchanges">0</div><div class="label">Échanges</div></div>
-    <div class="stat-card voyage"><div class="number" id="countVoyage">0</div><div class="label">Voyages<br>d’études</div></div>
+    <div class="stat-card voyage"><div class="number" id="countVoyage">0</div><div class="label">Voyages</div></div>
   </div>
-  <div class="stats-row">
-    <div class="stat-card diplome"><div class="number" id="countDiplome">0</div><div class="label">Doubles<br>diplômes</div></div>
+  <div class="stats-row" style="padding-top:0">
+    <div class="stat-card diplome"><div class="number" id="countDiplome">0</div><div class="label">Doubles diplômes</div></div>
     <div class="stat-card pepiniere"><div class="number" id="countPepiniere">0</div><div class="label">Pépinières</div></div>
-    <div class="stat-card stage-diplomant"><div class="number" id="countStageDiplomant">0</div><div class="label">Stages<br>diplômants</div></div>
+    <div class="stat-card stage-diplomant"><div class="number" id="countStageDiplomant">0</div><div class="label">Stages diplômants</div></div>
   </div>
-  <div class="stats-row">
-    <div class="stat-card"><div class="number" id="countStratos">0</div><div class="label">Stratos</div></div>
+  <div class="stats-row" style="padding-top:0">
     <div class="stat-card alumni"><div class="number" id="countAlumni">0</div><div class="label">Alumni</div></div>
+    <div class="stat-card annuaire"><div class="number" id="countAnnuaire">0</div><div class="label">Annuaire</div></div>
   </div>
-  <div class="stats-row">
-    <div class="stat-card"><div class="number" id="countCities">0</div><div class="label">Villes</div></div>
-    <div class="stat-card"><div class="number" id="countCountries">0</div><div class="label">Pays</div></div>
+  <div class="stats-row" style="padding-top:0">
+    <div class="stat-card"><div class="number" id="countStratos">0</div><div class="label">Stratos</div></div>
+    <div class="stat-card"><div class="number" id="countCitiesCountries">0</div><div class="label">Villes / Pays</div></div>
   </div>
   <div class="filters">
     <div class="filter-group"><div class="filter-label">Campus</div><div class="filter-chips" id="campusFilters"><button class="chip active" data-filter="all">Tous</button></div></div>
-    <div class="filter-group"><div class="filter-label">Type</div><div class="filter-chips" id="typeFilters"><button class="chip active" data-filter="all">Tous</button><button class="chip stage-chip" data-filter="stage">Stages</button><button class="chip exchange-chip" data-filter="exchange">Échanges</button><button class="chip voyage-chip" data-filter="voyage">Voyages</button><button class="chip diplome-chip" data-filter="diplome">Doubles diplômes</button><button class="chip pepiniere-chip" data-filter="pepiniere">Pépinières</button><button class="chip stage-diplomant-chip" data-filter="stage-diplomant">Stages diplômants</button><button class="chip alumni-chip" data-filter="alumni">Alumni</button></div></div>
+    <div class="filter-group"><div class="filter-label">Type</div><div class="filter-chips" id="typeFilters"><button class="chip active" data-filter="all">Tous</button><button class="chip stage-chip" data-filter="stage">Stages</button><button class="chip exchange-chip" data-filter="exchange">Échanges</button><button class="chip voyage-chip" data-filter="voyage">Voyages</button><button class="chip diplome-chip" data-filter="diplome">Doubles diplômes</button><button class="chip pepiniere-chip" data-filter="pepiniere">Pépinières</button><button class="chip stage-diplomant-chip" data-filter="stage-diplomant">Stages diplômants</button><button class="chip alumni-chip" data-filter="alumni">Alumni</button><button class="chip annuaire-chip" data-filter="annuaire">Annuaire</button></div></div>
     <div class="filter-group"><div class="filter-label">Promotion</div><div class="filter-chips" id="promoFilters"><button class="chip active" data-filter="all">Toutes</button></div></div>
     <div class="filter-group"><div class="filter-label">Année académique</div><div class="filter-chips" id="yearFilters"><button class="chip active" data-filter="all">Toutes</button></div></div>
     <div class="filter-group"><div class="filter-label">Spécialisation</div><div class="filter-chips" id="specFilters"><button class="chip active" data-filter="all">Toutes</button></div></div>
@@ -408,7 +429,8 @@ function parseCSV(csv) {
     const obj = {}; headers.forEach((h,i) => obj[h] = values[i]||'');
     const raw = (obj.type||obj.statut||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     let type = 'stage';
-    if (raw.includes('pepiniere') || raw.includes('pepinire')) type='pepiniere';
+    if (raw.includes('annuaire') || raw.includes('entreprise') || raw.includes('directory')) type='annuaire';
+    else if (raw.includes('pepiniere') || raw.includes('pepinire')) type='pepiniere';
     else if (raw.includes('stage') && raw.includes('diplom')) type='stage-diplomant';
     else if (raw.includes('double') || (raw.includes('diplome') && !raw.includes('stage'))) type='diplome';
     else if (raw.includes('voyage')) type='voyage';
@@ -470,6 +492,7 @@ map.on('style.load',()=>{
 });
 
 let activeTypes=new Set(), activePromos=new Set(), activeSpecs=new Set(), activeCampus=new Set(), activeYears=new Set(), currentPopup=null;
+let viewMode = 'all'; // 'all', 'experiences', 'annuaire'
 
 function setupMultiFilter(id, set, parse) {
   document.getElementById(id).addEventListener('click', e => {
@@ -514,6 +537,14 @@ function init(){
   document.getElementById('toggleLeft').addEventListener('click',()=>{ document.getElementById('panelLeft').classList.toggle('collapsed'); updateMapPadding(); });
   document.getElementById('toggleRight').addEventListener('click',()=>{ document.getElementById('panelRight').classList.toggle('collapsed'); updateMapPadding(); });
   document.getElementById('resetFilters').addEventListener('click', resetAllFilters);
+  // View mode switcher
+  document.getElementById('viewSwitcher').addEventListener('click', e => {
+    const btn = e.target.closest('.view-btn'); if(!btn) return;
+    document.querySelectorAll('#viewSwitcher .view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    viewMode = btn.dataset.view;
+    updateView();
+  });
   document.getElementById('voyagerBtn').addEventListener('click', () => {
     triggerVoyager();
   });
@@ -541,7 +572,10 @@ function initSearch() {
     const q = input.value.trim().toLowerCase();
     clearBtn.style.display = q ? 'flex' : 'none';
     if (q.length < 2) { resultsEl.classList.remove('visible'); return; }
-    const matches = destinations.filter(d =>
+    let searchPool = destinations;
+    if (viewMode === 'experiences') searchPool = destinations.filter(d => d.type !== 'annuaire');
+    else if (viewMode === 'annuaire') searchPool = destinations.filter(d => d.type === 'annuaire');
+    const matches = searchPool.filter(d =>
       [d.student, d.city, d.country, d.org, d.specialization, d.campus, d.academicYear, String(d.promo)]
         .some(f => (f||'').toLowerCase().includes(q))
     ).slice(0, 12);
@@ -549,7 +583,11 @@ function initSearch() {
     if (!matches.length) { resultsEl.innerHTML = '<div class="search-no-result">Aucun résultat</div>'; }
     else matches.forEach(d => {
       const item = document.createElement('div'); item.className = 'search-result-item';
-      item.innerHTML = `<div class="search-result-city">${hl(d.student,q)} · ${hl(d.city,q)}, ${d.country}</div><div class="search-result-detail">${hl(d.org,q)}${d.specialization?' · '+hl(d.specialization,q):''} — ${d.promo}</div>`;
+      if (d.type === 'annuaire') {
+        item.innerHTML = `<div class="search-result-city">${hl(d.org||d.student,q)} · ${hl(d.city,q)}, ${d.country}</div><div class="search-result-detail">${d.specialization?hl(d.specialization,q):''} — Annuaire</div>`;
+      } else {
+        item.innerHTML = `<div class="search-result-city">${hl(d.student,q)} · ${hl(d.city,q)}, ${d.country}</div><div class="search-result-detail">${hl(d.org,q)}${d.specialization?' · '+hl(d.specialization,q):''} — ${d.promo}</div>`;
+      }
       item.addEventListener('click', () => { openPopup(d); resultsEl.classList.remove('visible'); input.value = d.student; clearBtn.style.display = 'flex'; });
       resultsEl.appendChild(item);
     });
@@ -592,7 +630,7 @@ function buildDynFilter(id, vals, reverse){
   u.forEach(s=>{ const ch=document.createElement('button');ch.className='chip';ch.dataset.filter=s;ch.textContent=s;c.appendChild(ch); });
 }
 
-const TC={stage:'#5EBD8C',exchange:'#6FA3EF',voyage:'#E891B2',diplome:'#A78BFA',pepiniere:'#F27A7A','stage-diplomant':'#4ECDC4',alumni:'#E8A85F'};
+const TC={stage:'#5EBD8C',exchange:'#6FA3EF',voyage:'#E891B2',diplome:'#A78BFA',pepiniere:'#F27A7A','stage-diplomant':'#4ECDC4',alumni:'#E8A85F',annuaire:'#38BDF8'};
 function toGJ(data){return{type:'FeatureCollection',features:data.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:[d.lng,d.lat]},properties:{type:d.type,_origIndex:d._origIndex}}))};}
 
 function createMarkers(){
@@ -636,7 +674,7 @@ function clearHighlight() {
   if(src) src.setData({type:'FeatureCollection',features:[]});
 }
 
-function getTypeLabel(t){const L={stage:'Stage',exchange:'Échange académique',voyage:"Voyage d'études",diplome:'Double diplôme',pepiniere:'Pépinière','stage-diplomant':'Stage diplômant',alumni:'Alumni'};return L[t]||t;}
+function getTypeLabel(t){const L={stage:'Stage',exchange:'Échange académique',voyage:"Voyage d'études",diplome:'Double diplôme',pepiniere:'Pépinière','stage-diplomant':'Stage diplômant',alumni:'Alumni',annuaire:'Annuaire'};return L[t]||t;}
 
 function openPopup(d){
   if(currentPopup)currentPopup.remove();
@@ -645,6 +683,16 @@ function openPopup(d){
 }
 
 function popupHTML(d) {
+  if (d.type === 'annuaire') {
+    return `
+      <div class="popup-type annuaire">Annuaire</div>
+      <div class="popup-student">${d.org || d.student}</div>
+      ${d.specialization?`<div class="popup-specialization">${d.specialization}</div>`:''}
+      ${d.website?`<a class="popup-link" href="${d.website}" target="_blank" rel="noopener">Site web ↗</a>`:''}
+      ${d.linkedin?`<a class="popup-link" href="${d.linkedin}" target="_blank" rel="noopener">LinkedIn ↗</a>`:''}
+      <div class="popup-section"><div class="popup-location">${d.city}, ${d.country}</div></div>
+    `;
+  }
   const sub = [];
   if(d.promo) sub.push('Promo '+d.promo);
   if(d.campus) sub.push('Strate '+d.campus);
@@ -678,7 +726,11 @@ function openClusterPopup(items, coords) {
 }
 
 function updateView(){
-  const filtered=destinations.filter(d=>{
+  let prefiltered = destinations;
+  if (viewMode === 'experiences') prefiltered = destinations.filter(d => d.type !== 'annuaire');
+  else if (viewMode === 'annuaire') prefiltered = destinations.filter(d => d.type === 'annuaire');
+
+  const filtered=prefiltered.filter(d=>{
     return (activeCampus.size===0||activeCampus.has(d.campus))&&(activeTypes.size===0||activeTypes.has(d.type))&&(activePromos.size===0||activePromos.has(d.promo))&&(activeYears.size===0||activeYears.has(d.academicYear))&&(activeSpecs.size===0||activeSpecs.has(d.specialization));
   });
   const src=map.getSource('destinations'); if(src)src.setData(toGJ(filtered));
@@ -689,13 +741,14 @@ function updateView(){
   document.getElementById('countDiplome').textContent=filtered.filter(d=>d.type==='diplome').length;
   document.getElementById('countPepiniere').textContent=filtered.filter(d=>d.type==='pepiniere').length;
   document.getElementById('countStageDiplomant').textContent=filtered.filter(d=>d.type==='stage-diplomant').length;
-  const uStudents=new Set(filtered.map(d=>d.student).filter(s=>s));
+  document.getElementById('countAnnuaire').textContent=filtered.filter(d=>d.type==='annuaire').length;
+  const expFiltered = filtered.filter(d => d.type !== 'annuaire');
+  const uStudents=new Set(expFiltered.map(d=>d.student).filter(s=>s));
   const uCities=new Set(filtered.map(d=>`${d.city}-${d.country}`));
   const uCountries=new Set(filtered.map(d=>d.country));
   document.getElementById('countAlumni').textContent=filtered.filter(d=>d.type==='alumni').length;
   document.getElementById('countStratos').textContent=uStudents.size;
-  document.getElementById('countCities').textContent=uCities.size;
-  document.getElementById('countCountries').textContent=uCountries.size;
+  document.getElementById('countCitiesCountries').textContent=uCities.size+' / '+uCountries.size;
   document.getElementById('listCount').textContent=`${uCities.size} destination${uCities.size>1?'s':''}`;
   document.getElementById('listEntries').textContent=`${filtered.length} entrée${filtered.length>1?'s':''}`;
 
@@ -749,7 +802,11 @@ function updateView(){
       }
       countries[country].forEach(d => {
         const item = document.createElement('div'); item.className = 'dest-item';
-        item.innerHTML = `<div class="dest-dot ${d.type}"></div><div class="dest-info"><div class="dest-city">${d.city}${countryNames.length<=1?', '+d.country:''}</div><div class="dest-student">${d.student}${d.promo?' · Promo '+d.promo:''}</div><div class="dest-detail">${d.org}${d.specialization?' · '+d.specialization:''}</div></div>${d.academicYear?`<div class="dest-year">${d.academicYear}</div>`:''}`;
+        if (d.type === 'annuaire') {
+          item.innerHTML = `<div class="dest-dot ${d.type}"></div><div class="dest-info"><div class="dest-city">${d.org || d.city}${countryNames.length<=1?', '+d.country:''}</div><div class="dest-detail">${d.specialization||d.city}</div></div>`;
+        } else {
+          item.innerHTML = `<div class="dest-dot ${d.type}"></div><div class="dest-info"><div class="dest-city">${d.city}${countryNames.length<=1?', '+d.country:''}</div><div class="dest-student">${d.student}${d.promo?' · Promo '+d.promo:''}</div><div class="dest-detail">${d.org}${d.specialization?' · '+d.specialization:''}</div></div>${d.academicYear?`<div class="dest-year">${d.academicYear}</div>`:''}`;
+        }
         item.addEventListener('click', () => openPopup(d));
         item.addEventListener('mouseenter', () => highlightPoint(d));
         item.addEventListener('mouseleave', () => clearHighlight());
@@ -762,8 +819,11 @@ function updateView(){
 
 /* ── Voyager: spacebar shortcut ────────── */
 function triggerVoyager() {
-  if (destinations.length === 0) return;
-  const d = destinations[Math.floor(Math.random() * destinations.length)];
+  let pool = destinations;
+  if (viewMode === 'experiences') pool = destinations.filter(d => d.type !== 'annuaire');
+  else if (viewMode === 'annuaire') pool = destinations.filter(d => d.type === 'annuaire');
+  if (pool.length === 0) return;
+  const d = pool[Math.floor(Math.random() * pool.length)];
   openPopup(d);
 }
 
@@ -800,8 +860,11 @@ const PRES_CRUISE_ZOOM = 1.8;
 const PRES_CRUISE_PITCH = 0;
 
 function presStart() {
-  if (destinations.length === 0) return;
-  presShuffled = [...destinations].sort(() => Math.random() - 0.5);
+  let pool = destinations;
+  if (viewMode === 'experiences') pool = destinations.filter(d => d.type !== 'annuaire');
+  else if (viewMode === 'annuaire') pool = destinations.filter(d => d.type === 'annuaire');
+  if (pool.length === 0) return;
+  presShuffled = [...pool].sort(() => Math.random() - 0.5);
   presIndex = 0;
   presActive = true;
   presPlaying = true;
